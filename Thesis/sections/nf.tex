@@ -1,0 +1,16 @@
+\chapter{Normalizing Flows}
+\section{Introduction}
+In the recent years Normalizing Flow (NF) has become a popular way to estimate
+a target distribution by transforming a random variable from a simple distribution 
+such as Gaussian or Uniform.
+Normalizing flow is a flexible and often computationally cheap way
+to estimate distributions, which allow for easy sampling and also evaluation of
+likelihood. The core of NF are invertible functions \(f_i: \mathbb{R}^D \rightarrow 
+\mathbb{R}^D\), where \(D\) is the dimension of the distribution. The functions are often 
+referred to as transformations. 
+To sample with NF, one starts with a sample \(z^0\) from a well 
+known distribution such as Uniform or Gaussian, and then apply sequentially 
+\begin{align}
+z^{(i)} = f_i(z^{(i-1)}), i=1,2,3,...,M.
+\end{align}
+\(M\) can be one, but are often greater, i.e chain of transformations.\\

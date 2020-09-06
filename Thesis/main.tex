@@ -1,0 +1,37 @@
+\documentclass[a4paper, oneside, openany, british]{memoir}
+% Add [final] to remove marginal notes
+
+\usepackage{style}           % Custom style
+\usepackage{masterfrontpage} % Front page
+
+\title{Title}
+\subtitle{Optional Subtitle}
+\author{Erik Lien Bolager}
+
+\includeonly
+{
+    sections/nf
+}
+
+\begin{document}
+
+    \frontmatter        % Folios in Roman numerals, unnumbered chapters.
+
+    \masterfrontpage
+
+    %\tableofcontents    % Or \tableofcontents*
+    %\listoffigures      % Or \listoffigures*
+    %\listoftables       % Or \listoftables*
+
+    \mainmatter         % Folios in Arabic numerals, numbered chapters.
+    \include{sections/nf}
+    
+    %\appendix           % "Chapter" is renamed "Appendix"
+    %\appendixpage       % Similar to \part*{Appendices}, but appears in TOC.
+
+
+    \backmatter         % Folios in Arabic numerals, unnumbered chapters.
+
+    \printbibliography
+
+\end{document}
