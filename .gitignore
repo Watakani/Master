@@ -12,6 +12,7 @@
 *.cb2
 .*.lb
 
+.clean.sh
 ## Intermediate documents:
 *.dvi
 *.xdv
