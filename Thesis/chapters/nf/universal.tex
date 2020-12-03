@@ -1,0 +1,558 @@
+    %! TEX root = ../main.tex
+\section{Universality}
+An aspect of normalizing flows is to know whether or not we can approximate any
+distribution by simple increasing some \(\phi\), where \(\phi\) can be either
+one or several parameters determined before training. In some cases such as a \(\mathcal{NN}^{+}\)-flow,
+we may talk about the size of the neural network.
+With splines it may be the number of knots used. Another
+apt parameter in the context of normalizing flows is the number of transformations. 
+The important part is that we can guarantee convergence in
+distribution given flow, by increasing some parameters \(\phi\). We also denote
+\(\bm z_T^{(\phi)}\) as the result of a corresponding flow \(f\) using \(\phi\)-neurons/knots/transformation etc.
+It is worth noting that even with this guarantee,
+we may not do well with any given target distribution in practice, as we have finite data 
+and computing power to estimate the parameters. This is quite analogous to neural networks in general,
+as we know we can approximate any continuous function when the input is compact. However,
+when working with images one introduces an inductive bias regarding locality
+which results in a Convolutional Neural Network (CNN). Regardless, knowing 
+that a given flow is universal w.r.t distribution tells us that the target space
+induced by the flow is not restricitive. We follow \cite{naf} when formally defining universality.
+\begin{definition} 
+    Let \((\mathcal{A}, f)\) be a normalizing flow, \(p_{\bm x}\) be any target density in a class of densities \(\mathscr{P}\),
+    and \(\phi\) be a set of parameters which by increasing also increases the size of the model.
+    The flow \(f\) is an \emph{universal density approximator} (UDA) for \(\mathscr{P}\) if there exist
+    a sequence of \(\bm z_T^{(\phi)}\), such that when \(\phi \rightarrow \infty\),
+    \(\bm z_T^{(\phi)} \xrightarrow{d} \bm x\).
+\end{definition}
+A couple of remarks are in order. Firstly, This definition is quite analogous to how we speak about universal approximators with regards to neural networks. We have a certain
+network architecture and class of functions, namely continuous functions. We then posit existence of a specific network which converges
+to any function in the class uniformly, when increasing the model through increasing \(\phi\), where \(\phi\) can in this case be number
+of layers or number of neurons. 
+Secondly, we do recognize that the name \emph{universal density approximator} is a little bit misleading. If something converges in 
+distribution does not imply convergence in density. This can be illustrated with a density
+\begin{align*}
+    p_{n}(\bm x) = 
+    \begin{cases}
+        1 - \cos(2\pi n x), & \text{if \(0 < x < 1\)} \\
+        0,& \text{elsewhere} 
+    \end{cases}
+\end{align*}
+This does clearly not converge to any density, but the CDF of \(p_n\) is equal to 
+\(x - \frac{\sin(2\pi n x)}{2 \pi n}\) which converges to \(x\) when \(n \rightarrow \infty\). Hence,
+it converges to the Uniform distribution between 0 and 1, while the density does not converge to 1. 
+One might ask how well the density we achieve from the flow corresponds to the target
+density, even in flows that are UDA. Through the way one train the flow, and its 
+use of KL-divergence, makes it less probable that we converge in distribution while 
+not being reasonably close density wise. It may, however, affect the ability of finding the parameters
+such that we have convergence in distribution. We therefore ought to be cautious of the property UDA and 
+what is conveys, while still appreciate the guarantee that we can in theory converge to any continuous target distribution.
+Also worth noting that if one is able to show that the density of a flow can converge to any target density, then
+the flow is an UDA. This follows from Scheffé's Theorem, which states that convergence in density a.e implies convergence 
+in distribution (\cite{scheffe}). Regardless, we follow the literature and its definition of an UDA, while keeping in mind
+the gap between convergence of density and in distribution.
+\subsection{NAF}
+As alluded to earlier, \(\mathcal{NN}^{+}\)-flows are UDA. To be more specific, a certain model in the class of flows 
+referred to as NAF is an UDA for \(\mathscr{P}\), where \(\mathscr{P}\)
+is the class of positive, continuous densities. To quickly summarize the result presented by Huang et.al: The flow given by
+an transformation function
+\begin{align}\label{eq:naf}
+    f_{d}(\bm z_{0}) = \sigma^{-1}\left(\sum_{j=1}^n w_{d,j} \sigma\left(\frac{z_{0,d} - b_{d,j}}{\tau_{d,j}}\right)\right),
+    & \text{ for all \(d \in \mathcal{D}\)}
+\end{align}
+where the parameters \((w_{d,j}, b_{d,j}, \tau_{d,j})^{n}_{j=1}\) is given by \(\mathcal{H}(\mathcal{S}_{ext}(t,d))\).
+The flow-structure is an IAR-structure and \(\mathcal{H}\) is a deep neural network. 
+The flow described is referred to as NAF-DSF.
+It is only one transformation, and all its expressiveness rely on increasing number of 
+neurons in the hidden layer, \(n\). With this flow, Huang et.al proved the following theorem.
+\begin{theorem}[\cite{naf}]
+    Let \(\bm z_0\) be a random vector in an open set \(\mathcal{U} \subset \R^D\).
+    Let \(\bm x\) be a random vector in \(\R^D\) with its density being a member of 
+    \begin{align*}
+        \mathscr{P} = \{p_{\bm x}\mid p_{\bm x}\in C(\R^D;\R_*^{+})\}.
+    \end{align*}
+    Then there exist a transformation
+    of \(\bm z_0\) to \(\bm z_1\) through NAF-DSF such that 
+    \(\bm z_1 \xrightarrow{d} \bm x\). 
+\end{theorem}
+Hence, NAF-DSF is an UDA. However, as mentioned earlier, the inverse of NAF is only tractable. A 
+natural question is then whether or not a flow with analytical inverse can be an UDA.
+
+\subsection{Affine transformation}
+When it comes to flows with affine transformation, is has for a long time been an open
+question whether or not the flow is an UDA. This year Wehenkel and Louppe gave a 
+counter-example in terms of a target density that cannot be approximated by affine flow. 
+The goal of this section is to both refute the counter-example for a general \(D\), 
+and also prove that affine flow is not an UDA for \(D = 1\). We start by refreshing what
+an affine normalizing flow is.
+\begin{align}
+    z_{0,d} &\sim q_{\bm{z}_0}\\
+    z_{t,d} = a_{t,d}&\cdot z_{t-1,d} + b_{t,d}\label{eq:affine_trans}
+\end{align}
+for all \(t\in \mathcal{T}\) and \(d\in \mathcal{D}\), and with 
+\((a_{t,d}, b_{t,d}) = \mathcal{H}(\mathcal{S}_{ext}(t,d))\). With the the following constraints,
+that all \(a\)'s are positive, and that the structure is with permutations, i.e all dimensions have 
+more than one ancestor in the corresponding graph. If this is not the case, then there exist a \(d\) such that 
+\(z_d\) is an affine transformation of constants \(a\)'s and \(b\)'s, which is detrimental to
+the flows expressiveness, as we shall see. 
+
+A paper emerged (\cite{wehenkel}), which claimed that affine flow cannot be an UDA, regardless of structure 
+or number of transformations. The proof is by a counter-example, which state a target density where one component is 
+independent, and with base density being a Gaussian with diagonal covariance matrix. That is, a target distribution
+with \(\bm x \sim p_{\bm x}\) such that \(x_j \indep x_{-j}\), for at least one \(1 \leq j \leq D\). The first argument 
+that if the flow is construced such that \(z_j\) only have one ancestor, it cannot be an UDA. This is correct, as then 
+\(z_j\) becomes Gaussian. However, with a reasonable structure that makes \(z_j\) have more than itself as ancestor, it 
+is certainly not Gaussian (not even conditionally). The claim when the component has more than one ancestor is that 
+it either must hurt the bijectivity of the flow, or independence. When the expectation and variance for \(p_{\bm x}\) exist,
+we can show that this is not the case. We then claim that this also holds for when expectation and variance does not exist.
+
+The idea for the proof is to construct part of the flow, and show that such flow exist. Then we are assuming that we can 
+always find an affine flow from any non-independent distribution to another. Then it follows that any independent components 
+in either base distribution, target distribution or both is not a problem given that affine flow is an UDA for non-independent
+components. We have to diverge from the base distribution of Gaussian. This is simply to ensure we are sampling from a 
+compact set, i.e closed and bounded on \(\R^D\). However, starting for example with a standard multivariate Gaussian
+can also be approximated very well with a set that is large, yet bounded. Hence, theoretically
+compactness is crucial, as it allow us to use universal approximation w.r.t deep neural networks. Yet practically, it 
+ought not be too much difference from a very large compact set and sampling from a standard Gaussian. 
+
+We are constructing part of the flow, which is the two first and two last parts of the flow. 
+We are working with a target distribution
+where each component is independt of the others and equally with a base distribution. Other versions with different causality
+follows directly from this case. The flow we are working with start with the first transformation
+\begin{align*}
+    z_{1,d} = a(z_{0,1:d-1})&\,z_{0,d} + b(z_{0,1:d-1}) = z_{0,d} - \mu_{z_{0,d}}
+\end{align*}
+where \(\mu_{z_{0,d}}\) is the mean of the base density for the \(d\)th dimension. It then follows with 
+\begin{align*}
+    z_{2,d} = a(z_{1,1:d-1})&\,z_{1,d} + b(z_{1,1:d-1}) = z_{1,d} + \sum_{j=1}^{d-1} z_{1,j}.
+\end{align*}
+The final transformations are
+\begin{align*}
+    z_{T-1,d} = a(z_{T-1,1:d-1})&\,z_{T-2,d} + b(z_{T-1,1:d-1}) = z_{T-2,d} - \sum_{j=1}^{d-1} z_{T-1,j},
+\end{align*} 
+and finally
+\begin{align*}
+    z_{T,d} = a(z_{T,1:d-1})&\,z_{T,d} + b(z_{T,1:d-1}) = z_{T,d} + \mu_{z_{T,d}}.
+\end{align*}
+Notice that the structures for the first two steps are inverse autoregressive, while the latter two uses 
+autoregressive structures. However, the last transformations can be written with an inverse autoregressive structure
+by simply doing \(2*D\) transformations instead of 2, where for each transformation \(t\), one variable \(d\) is transformed by
+as defined above, and the other dimensions are simply transformed by the identity function. Preferring fewer transformation
+for readability, we stick with the transformation defined above, but noting that we can have an inverse autoregressive
+structure. Additionally, we are going to talk about the density of the inverse transformation, that is \(q_{\bm z_{T-2}}^{-1}\). That is,
+the density induced density of
+\begin{align*}
+    z_{T-2,d} =  (z_{T,d}-\mu_{z_{T,d}}) + \sum_{j=1}^{d-1} (z_{T,j}-\mu_{z_{T,j}}).
+\end{align*}
+
+We assume now that \(\bm z_D \sim p_{\bm x}\). Obviously in reality, we would not know what the
+target distribution \(p_{\bm x}\) is, however we are here only interested to show that there
+exist an affine flow from \(p_{\bm x}\) to some non-independent distribution. As the inverse is also an affine flow,
+we can then use the existence of the inverse flow to construct a flow from non-independent to independent distribution. 
+By then assuming that the affine flow is an UDA between non-independent distributions, we can show existence
+of flow between independent distributions through our construction.
+
+Let us then consider the density that the flow from transformation 0 to 1 induces, and the density 
+induced by the inverse flow from \(T\) to \(T-1\). Since we are working with independence in both base and target density,
+we have the induced densities
+\begin{align*}
+    q_{\bm z_1}(\bm z_1) = \prod_{d=1}^D q_{z_{0,d}}(z_{0,d})
+\end{align*}
+and
+\begin{align*}
+    q^{-1}_{\bm z_{T-2}}(\bm z_{T-2}) = \prod_{d=1}^D q_{z_{T,d}}(z_{T,d}) = \prod_{d=1}^D p_{x_{d}}(x_{d})
+\end{align*}
+where the last equality stems from the assumption above. Hence the density have not changed. However, we have 
+added dependence.
+\begin{lemma}\label{lemma:corr_densi}
+    Let the expectation and variance exist for both the base and target density. 
+    The two densities \(q_{\bm z_2}\) and \(q^{-1}_{\bm z_{T-2}}\) are both
+    not independent.
+\end{lemma}
+\begin{proof}
+    We only prove for one of the transformation, as the proof is identical. The
+    expectation of any variable in \(\bm z_1\) is zero. That is,
+    \begin{align*}
+        E(z_{2,d}) = E\left(z_{1,d} + \sum_{j=1}^D z_{1,j}\right) 
+        = E\left(z_{0,d} - \mu_{z_{0,d}} + \sum_{j=1}^D z_{0,j} - \mu_{z_{0,j}}\right) 
+        = 0
+    \end{align*}
+    Which means that the covariance between any two variables \(z_{2,i}\) and \(z_{2,j}\), where w.l.g \(i<j\), is 
+    \begin{align*}
+        \text{Cov}(z_{2,i}, z_{2,j}) &= E\left(\left(z_{1,i} + \sum_{k=1}^{i-1} z_{1,j}\right) 
+                                  \left(z_{1,j} + \sum_{l=1}^{j-1} z_{1,l}\right)\right)\\
+                              &= E\left(\left(\sum_{k=1}^i \sum_{l=1}^i z_{1,k}\,z_{1,l}\right) + 
+                                  \left(\sum_{k=1}^i \sum_{l=i+1}^j z_{1,k}\,z_{1,l}\right)\right).
+    \end{align*}
+    The expectation of the last sum is 0, as \(\bm z_1\) are independent (only subtracted mean from each dimension). 
+    The first sum also end up in 0 when \(k \neq l\), hence
+    \begin{align*}
+        \text{Cov}(z_{2,i}, z_{2,j}) &= E\left(\sum_{k=1}^i z_{1,k}^2\right)\\
+                                     &= E\left(\sum_{k=1}^i (z_{0,k}-\mu_{z_{0,k}})^2\right)
+                                     = \sum_{k=1}^i \text{Var}(z_{0,k}) > 0.
+    \end{align*}
+    Which means that the induced distributions with density \(q_{\bm z_2}\) and \(q_{\bm z_{T-2}^{-1}}\) 
+    are not independent.
+\end{proof}
+The next step before proving that such flows described above exist, given that we have affine flow being UDA
+for non-independent distributions, is to make sure we have compactness after each flow. This is because we are
+using a deep neural network to estimate the \(a\)'s and \(b\)'s for each transformation.
+\begin{lemma}\label{lemma:compact}
+    Let the set of values where the base density is greater than 0 be compact in \(\R^D\).
+    Then the output is compact in \(\R^D\) for every transformation \(t=1,2,\cdots,T\) on an affine 
+    flow with inverse autoregressive structure.
+\end{lemma}
+\begin{proof}
+    A set in \(\R^D\) is compact if and only if it is bounded and closed. Assuming \(\bm z_{t-1} \in \mathcal{Z}_{t-1}\), 
+    where \(\mathcal{Z}_{t-1}\) is a compact set in \(\R^D\). 
+    Using, w.l.g, an inverse autoregressive structure where \(z_{t-1,d}\) is dependent on \(z_{t-1,1:d-1}\).
+    
+    To show preservation of compactness, we simply need to show that the transformation in \cref{eq:affine_trans} is 
+    continuous. Transformation of the first dimension is clearly continuous, as the parameters \(a_{t,1}, b_{t,1}\) is
+    is constant for all \(z_{t-1,1}\). Next, assuming the structure uses activation function ReLU, and final 
+    activation function on \(a\) to make it positive is continuous, we have that the neural network with input \(z_{d-1,1:t-1}\)
+    is continuous. As it simply is a composition of affine transformation with added ReLU (which is continuous), and an extra
+    continuous activation function on \(a\). It therefore follows that the transformation of \(z_{t-1,d}\) is also continuous.
+    Hence, the transformation of \(\bm z_{t-1}\) is continuous. Any continuous function from a compact subset of a metric space
+    to another metric space implies the image of the function is also compact. 
+\end{proof}
+This allows us to always be able to find the transformations for \(t=1,2,T-2, T-1\), using inverse autoregressive structures
+and allowing for the neural network associated with each structure to be as large as one needs. This is due to the fact
+that we know input is compact and output is either constant, e.g subtracting mean, or sum of the input, which are both
+continuous. Since the flows we wish to approximate are all continuous, hence we know we can find them using neural networks by \cref{thm:uni_nn}.
+\begin{proposition}
+    Let \(\mathcal{Z}_0 \in \R^D\) be compact. If affine flow with inverse autoregressive structure (with permutations) is an
+    UDA when both base and target distribution are non-independent, then it is an UDA for all base and target densities with
+    finite expectation and variance.
+\end{proposition}
+\begin{proof}
+    As noted earlier, we are only proving it for when both base and target density are independent, since it follows from this that 
+    it holds when either one is non-independent distributions. The flow goes as follows. Sample from \(\mathcal{Z}_0\), as the input
+    is compact and both \(a\) and \(b\) in the first flow are constants, means that \cref{thm:uni_nn} can always approximate the
+    first transformation
+    \begin{align*}
+        z_{1,d} = a(z_{0,1:d-1})&\,z_{0,d} + b(z_{0,1:d-1}) = z_{0,d} - \mu_{z_{0,d}}.
+    \end{align*}
+    From \cref{lemma:compact} and the fact that sum of input from a subset in \(\R^D\) is an continuous function, which means
+    we can approximate transformation number two arbitraily well by \cref{thm:uni_nn}. That is, we can approximate 
+    arbitraily well 
+    \begin{align*}
+        z_{2,d} = a(z_{1,1:d-1})&\,z_{1,d} + b(z_{1,1:d-1}) = z_{1,d} + \sum_{j=1}^{d-1} z_{1,j}.
+    \end{align*}
+    Through \cref{lemma:corr_densi} and assumption of UDA between non-independent distributions, we have that we 
+    can find a flow such that the sample \(\bm z_{T-2}\) converges in distribution to the distribution with density \(q_{\bm z_{T-2}}^{-1}\).
+    Through the same reasoning as with the first two transformations, assuming we rewrite the
+    two last transformations such that it have an inverse autoregressive structure.
+    As we know \(\mathcal{Z}_{T-2}\) is compact in \(\R^D\) due to
+    \cref{lemma:corr_densi}, which means that we can arbitraily well approximate the transformations
+    \begin{align*}
+        z_{T-1,d} = a(z_{T-1,1:d-1})&\,z_{T-2,d} + b(z_{T-1,1:d-1}) = z_{T-2,d} - \sum_{j=1}^{d-1} z_{T-1,j}\\
+        z_{T,d} = a(z_{T,1:d-1})&\,z_{T,d} + b(z_{T,1:d-1}) = z_{T,d} + \mu_{z_{T,d}}.
+    \end{align*}
+    By definition of the induced \(q_{\bm z_{T-2}}^{-1}\), i.e it is the inverse transformation is such that 
+    \(\bm z_{T} \sim p_{\bm x}\). Which means that \(\bm z_0 \xrightarrow{d} \bm x\), which means that the affine flow
+    is also an UDA for base and target distributions that are independent with expectation and variance existing.
+\end{proof}
+This means that, at least for the case when we have existence of expectation and variance, the counter-example given by \cite{wehenkel}
+does not necessarily hold. We add necessarily, as we are currently working with base distribution defined on a compact set, which
+we allow as a fair condition to put on base densities. Although we do acknowledge that the counter-example was based off independent
+Gaussian, but rebuking our proposition due to the assumption of compactness is to refute all proofs of UDA in the literature. As all
+proofs assume this, due to the limitations in \cref{thm:uni_nn}.  
+
+\begin{conjecture}\label{conj:nonind}
+    There always exist an affine flow with inverse autoregressive flow-structure, 
+    such that any independent continuous distribution 
+    can be transformed through the flow, where the induced distribution is non-independent.
+\end{conjecture}
+If this hold, then we strengthen our proposition such that if affine flow with inverse autoregressive structure is an UDA between
+non-independent distributions, then it is also UDA for all distributions given compact \(\mathcal{Z}_0\). As we do not know
+\cref{conj:nonind}, means that \cite{wehenkel} cannot be known as well.\\
+
+However, we can easily prove that for \(D=1\), the affine flow cannot be an UDA. 
+\begin{proposition}
+    Let the target density be \(p_{\bm x}\) with \(D = 1\). Then an affine flow cannot be 
+    an UDA, regardless of flow-structure.
+\end{proposition}
+\begin{proof}
+    Due to the fact that all the parameters \(\{a_{t,1}, b_{t,1}\}^{T}_{t=1}\) in the flow are constants, as the set
+    \(\mathcal{E}_{ext}\) of the structure is empty. This means that the induced density of the flow is
+    \begin{align*}
+        q_{\bm z_T} = q_{\bm z_0}(f^{-1}(\bm z_T)) \, \prod_{t=1}^T \lvert a_{t,1} \rvert^{-1}.
+    \end{align*}
+    This means for instance that the number of modes that we originally have in \(q_{\bm z_0}\) is preserved, as we 
+    are multiplying by the same constant for all \(f^{-1}(\bm z_{T})\). This means we need to know a priori the 
+    number of modes the target distribution have so we can do the same for our base distribution. However, this breaks
+    with the assumptions behind the base distribution. Hence, the flow \(f\) cannot be an UDA.
+\end{proof}
+
+It still remains an open question whether or not the affine flow is an UDA for \(D > 1\). 
+
+\subsection{Analytical Inverse Flows are UDA}
+Affine flow with FILLER flow-structure is just one of a whole class of non-linear analytically invertible normalizing flows. 
+This class can be written as 
+\begin{align}\label{eq:aif_flow}
+    f_{t, d}(\bm z_{t-1}) = c_{t,d} \cdot h_{t,d}[a_{t,d} \cdot z_{t,d} 
+    + b_{t,d}] + d_{t,d},
+\end{align}
+where \(h_{t,d}\) are piecewise \(C^1\)-diffeomorphisms, analytically invertible, and 
+\begin{align*}
+    (a_{t,d}, b_{t,d}, c_{t,d}, d_{t,d}) = \mathcal{H}(\mathcal{S}_{ext}(z_{t,d})).
+\end{align*}
+It is easy to see from this definition
+that affine flow is just one of many possible flows that follows \cref{eq:aif_flow}. We shall refer to the flows
+that uses transformations on the form \cref{eq:aif_flow} as AIFs.\todo{Write about benefits of introducing h}\\
+
+We now turn our attention to one certain AIF, which we will then show is an UDA. As far as we know, this have never been done. That is,
+to show that analytical inverse flows can be UDAs. The proof will be given in full detail, yet we will follow a lot of the same path as
+how NAF-DSF was proved to be UDA.
+\begin{definition}
+    Let \((\mathcal{A}, f)\) be a normalizing flow with corresponding flow-structure \(\mathcal{S}\). Let \(q_{\bm z_0}\) be
+    the density that correpsponds to the base distribution \(\mathcal{A}\). A piecewise affine flow (PAF), is defined as
+    \begin{align}
+        \bm z_0 &\sim q_{\bm z_0} \\
+        f_{0,d}(z_{0,d}) &= \sigma(z_{0,d})\\
+        f_{t,d}(\bm z_{t-1,d}) &= h_{t,d}(z_{t-1,d} - b_{t,d}) + b_{t,d} \label{eq:h_trans}\\
+        f_{T+1,d}(z_{T,d}) &= \hat{\sigma}(z_{T-1,d})\\
+        f_{T+2,d}(z_{T+1,d}) &= \sigma^{-1}(z_{T,d}).
+    \end{align}
+    where
+    \begin{align}
+        h_{t,d}(x) = 
+        \begin{cases}
+            a_{t,d}\cdot x, & \text{if \(x > 0\)} \\
+            x,& \text{else},
+        \end{cases}
+    \end{align}
+    and 
+    \begin{align}
+        \hat{\sigma}(x) = 2\left(\sigma(x) - \frac{1}{2}\right).
+    \end{align}
+    The parameters to estimate in the flow is simply \((a_{t,d}, b_{t,d}) = \mathcal{H}(\mathcal{S}_{ext}(z_{t,d}))\),
+    where \(a_{t,d} > 0\), for \(t\in \mathcal{T}\) and \(d \in \mathcal{D}\).
+\end{definition}
+
+\todo{Chance flow-structure FILLER word when it is defined prop}
+The indexing of steps \(t\) is done such
+that \(T\) decides how many transformations of the form \cref{eq:h_trans}. The three other transformations are always there,
+but does not depend on any other variables than the one it transforms, and they are a little bit different then. The main reason though for this
+particular indexing is for readability during proofs, as the one parameter we can scale is the number of transformations \cref{eq:h_trans}. 
+
+We now give an explanation of the flow. It first samples from our base distribution, then uses the standard logistic function 
+\(\frac{1}{1+\exp(-x)}\) to map our samples to \((0,1)\). Note that the transformation can be any as long as
+the output is positive (we chose somewhat arbitraily the sigmoid function). 
+We then apply \(T\) transformations of \cref{eq:h_trans}. The transformation can be seen as a reverse
+leaky ReLU, but where the point that used to be simply \(0\), is decided by \(b_{t,d}\). 
+We then, as \(z_{T,d} > 0\) for all 
+\(d \in \mathcal{D}\), map the samples \(z_{T,d}\) from \((0,\infty)\) to \((0,1)\) through \(\hat{\sigma}\), before applying 
+the standard logit function, i.e inverse to the standard logistic function. 
+
+\begin{proposition}
+    Let \((\mathcal{A}, f)\) be a normalizing flow with flow-structure \(\mathcal{S}\). If the flow is an PAF and the structure is 
+    a FILLER, then the resulting NF is an analytical inverse normalizing flow.
+\end{proposition}
+\begin{proof}
+    All transformations apart from \cref{eq:h_trans} is well known diffeomorphisms and analytical invertible, no matter
+    the flow-structure as the \(\mathcal{S}_{ext}\) is empty for all dimensions given \(t \in \{0,T+1,T+2\}\). Hence, we only need
+    to show that the transformation defined in \cref{eq:h_trans} as piecewise \(C^1\)-diffeomorphisms and that the inverse can
+    be written in close form. Let \(t \in \{2,\dots,T-1\}\), 
+    \(f_{t,d}(z_{t-1,d}) = h_{t,d}(z_{t-1,d} - b_{t,d}) + b_{t,d}\) and assume we know \(z_{t,d}\) and all 
+    variables corresponding to \(\mathcal{S}_{ext}(z_{t,d})\). As the structure is a FILLER, means we can guarantee this as long as
+    the transformation itself is invertible. We now
+    need to show, given this, that we can obtain \(z_{t-1,d}\), and as a closed form expression. As
+    \begin{align*}
+        \lim_{z_{t,d} \rightarrow b_{t,d}^{-}} f_{t,d} = \lim_{z_{t,d} \rightarrow b_{t,d}^{+}} f_{t,d},
+    \end{align*}
+    means it is continuous. As the derivative when constrained to \(z_{t-1,d} < b_{t,d}\) is equal to 1, \(z_{t-1,d} > b_{t,d}\) 
+    is equal to \(a_{t,d}\) and \(a_{t,d} > 0\) means it is a piecewise \(C^1\)-diffeomorphism.
+
+    The inverse can easily be written in closed form due to the fact that \(z_{t-1,d} > b_{t,d} \iff z_{t,d} > b_{t,d}\). 
+    As we can obtain \((a_{t,d}, b_{t,d})\) without knowing \(z_{t-1,d}\), due to the structure being FILLER. Combining these two
+    means that, given \(z_{t,d}\), one can obtain \(b_{t,d}\), which gives us \(z_{t,d}-b_{t,d}\). Being larger than 0 or not leads
+    us to either divide or not by \(a_{t,d}\), which we have obtained without \(z_{t-1,d}\). Hence, the inverse can be written as
+    \begin{align*}
+        f_{t,d}^{-1}(z_{t,d}) =
+        \begin{cases}
+            \frac{z_{t,d} - b_{t,d}}{a_{t,d}} + b_{t,d}, & \text{if \(z_{t,d} - b_{t,d} > 0\)}\\
+            z_{t,d}, & \text{otherwise}.
+        \end{cases}
+    \end{align*}
+    Which shows that the transformation is analytically invertible. Hence, the NF with flow being PAF and a structure that is FILLER,
+    is a flow in AIF.
+\end{proof}
+
+\subsection{Proof of UDA}
+We are now going to prove that a normalizing flow with PAF flow and FILLER flow-structure is in fact UDA. The flow-structure we are 
+limiting ourselves to is an IAR-structure without permutations, and later on prove it for a larger class of structures. 
+As we are interested in the
+expressiveness when the number of transformations increase, it makes sense to introduce \(g_{T}\). This refers to the PAF flow without
+the last logit transformation. Also, the \(T\) denotes here the number of transformations of \cref{eq:h_trans}, and not the \(T\)th transformation, 
+as we are used to with \(f\).  
+We also refer to \(\mathcal{H}\) as the function that output the parameters in \(g_{T}\). We are also limiting \(\mathcal{A}\), in this section,
+to have density with the property
+\begin{align*}
+    \begin{cases}
+        q_{\bm z_0}(\bm z_0) > 0, & \text{if \(\bm z_0 \in [k_0,k_1]^D\)}\\
+        q_{\bm z_0}(\bm z_0) = 0, & \text{otherwise},
+    \end{cases}
+\end{align*}
+where \(k_0 < k_1\) and \(k_0, k_1 \in \R\).
+
+We start by proving that \(g_T\) can, for one dimension, find a flow that converges to any monotonically increasing function from a 
+compact set \([k_0, k_1]\) to \([l_0,l_1]\), where the endpoints \(k_0,k_1\) maps to \(l_0,l_1\) respectively and the functions image
+is between 0 and 1 including. 
+This is the first step to show UDA, which will rely on approximating the conditional cumulative
+distribution, before applying the logit function in the last step of the PAF flow.
+
+\begin{lemma}\label{lemma:paf_one_dim}
+    Let \((\mathcal{A}, g_T)\) be a PAF without the \(T+2\) transformation, with an IAR-structure and dimension \(D=1\).
+    Let \(g\colon [k_0,k_1] \rightarrow [l_0,l_1]\) be a 
+    monotonically increasing function with \(g(k_0) = l_0\) and \(g(k_1) = l_1\), and \(0 \leq l_0 < l_1 \leq 1\) . 
+    Then there exist a flow on the form \(g_T\) that converges uniformly to \(g\), when \(T \rightarrow \infty\). The flow can also be approximated 
+    arbitrarily well by a neural network with \(4\) neurons in each hidden layer.
+\end{lemma}
+\begin{proof}
+    For any \(\epsilon > 0\), we set \(M = \ceil{\frac{1}{\epsilon}}\). Start by dividing \([0,1]\) into \(M+1\)
+    subsets 
+    \begin{align*}
+        \left(l_0,l_0 + \frac{l_1-l_0}{M+1}\right), \left(l_0+\frac{l_1-l_0}{M+1}, l_0 + \frac{2(l_1-l_0)}{M+1}\right),\dots, 
+        \left(l_0 +\frac{M(l_1-l_0)}{M+1}, l_1\right). 
+    \end{align*}
+    We shall denote the boundary points \(l_0 + \frac{m(l-1-l_0)}{M+1} = y_{m}\) for \(m\in \{1,2,\dots,M\}\). 
+    We can also find \(x_m = g^{-1}(y_m)\), where 
+    \begin{align*}
+        g^{-1}(y_m) = \inf\{x_m \mid g(x_m) = y_m,\, \forall x_m \in [k_0,k_1]\}.
+    \end{align*}
+    We then let number of transformations of \cref{eq:h_trans} be \(T = M + 2\).
+    The goal now to show that there exist a mapping \((a_t, b_t)^{T}_{t=1} = 
+    \mathcal{H}(\mathcal{S}_{ext})\), such that \(\lvert g_T(z_0) - g(z_0)\rvert < \epsilon\) for all \(z_0 \in [k_0,k_1]\). 
+
+    Let \(b_1 = 0\) and
+    \begin{align*}
+        a_1 =
+        \begin{dcases}
+            \frac{\hat{\sigma}^{-1}(l_0)}{\sigma(k_0)} & \text{ if \(\sigma(k_0) \geq \hat{\sigma}^{-1}(l_0)\) }\\
+            1 & \text{ otherwise. }
+        \end{dcases}
+    \end{align*}
+    This ensures that for all \(z_0 \in [k_0, k_1]\) we have \(g_T(z_0) \geq l_0\).
+    We then uses the next \(M\) transformations to create a flow that maps \(g_T(x_m)=y_m\). This is done by handling one
+    and one \(x_m\), while setting the \(b_t\) in a manner that ensures we do not change the previous \(x_{1:m-1}\), as well as
+    not change \(g_T(k_0) \geq l_0\). Quick reminder that applying the flow for \(t \in \mathcal{T}\) will first apply the standard sigmoid function to 
+    input, as \(f_0(z_0) = \sigma(z_0)\). We can then define the parameters \((a_t,b_t)^{M+1}_2\) iteratively, for \(t \in \{2,\dots,M+1\}\) and 
+    letting \(m=t-1\), as 
+    \begin{align*}
+        b_t =
+        \begin{cases}
+            \hat{\sigma}^{-1}(y_{m-1}) & \text{ if \(t > 2\) } \\
+            \hat{\sigma}^{-1}(l_0) & \text{ otherwise }
+        \end{cases}
+    \end{align*}
+    and
+    \begin{align*}
+        a_t = \frac{\hat{\sigma}^{-1}(y_m) - b_t}{\left(\bigcirc_{j=0}^{t-1} f_j(x_m)\right) - b_t}.
+    \end{align*}
+    The transformations from \(j=0\) to \(t-1\) are parameterized with the parameters already found, hence the iterative definition.
+    Also, notice that the parameters does not use the input of \(g_T\), they are constant. That is, after we have set a target \(g\) and 
+    number of transformations \(T\), we have a mapping which is constant w.r.t input. To set it in a NF perspective, 
+    the choice of \(T\) is always set before approximating \(\mathcal{H}\) and target \(g\) is induced by the target distribution, which
+    is also "set" before approximating \(\mathcal{H}\), hence it is not dependent on the input to the flow, \(z_0\). 
+
+    After \(M+1\) transformations using \cref{eq:h_trans} with the parameters described above, we simply need on last transformation. By
+    setting 
+    \begin{align*}
+        b_T = \hat{\sigma}^{-1}(y_M), 
+    \end{align*}
+    and 
+    \begin{align*}
+        a_T = 
+        \begin{dcases}
+            \frac{\hat{\sigma}^{-1}(l_1) - b_T}{\left(\bigcirc_{j=0}^{T-1}f_j(k_1)\right) - b_T}, & \text{ if \(\hat{\sigma}^{-1}(l_1) \leq \bigcirc_{j=0}^T\, 
+            f_j(k_1)\) }\\
+            1, & \text{ otherwise. }
+        \end{dcases}
+    \end{align*}
+    Here we use the same logic as with the first transformations, but now ensuring that \(g_T(z_0) \leq l_1\).
+    We now have the final transformation with the property that for all \(x_m\) with \(m \in \{1,\dots, M\}\), we have
+    \begin{align*}
+        g_T(x_t) = y_t.
+    \end{align*}
+    To show convergence of \(g_T\) and \(g\), we simply see that \(g_T(x_m) - g_T(x_{m-1}) = \frac{l_1 - l_0}{M+1}\) for all \(m \in \{1,\dots,M\}\) 
+    and
+    \(g_T(x_1)-l_0 = l_1 - g_T(x_M) = \frac{l_1-l_0}{M+1}\). We also know that \(l_0\leq g_T(z_0) \leq l_1\), for all \(z_0 \in [k_0,k_1]\).
+    Using the fact that both functions \(g_T\) and \(g\) are monotonically increasing 
+    and \(l_1 -l_0 \leq 1\), means that for all \(z_0 \in [k_0, k_1]\),
+    \begin{align*}
+        \lvert g_T(z_0) - g(z_0) \rvert \leq \frac{l_1-l_0}{M+1} < \frac{l_1-l_0}{M} \leq \frac{1}{M}
+        = \frac{1}{\ceil{\frac{1}{\epsilon}}} 
+        \leq \epsilon
+    \end{align*}
+    As \(D=1\) means that the mapping must be constant for all \(x\in [k_0, k_1]\), as \(\mathcal{S}_{ext}(t,1) = \emptyset\). This also 
+    means that the function \(\mathcal{H}\) is continuous with input from a compact set, hence we can approximate it arbitraily well
+    with a neural network following \cref{thm:uni_nn}.
+\end{proof}
+We now wish to extend the results above for higher dimensions, while also including the IAR-structure. We define a new 
+function for each \(d \in \mathcal{D}\), \(G_d(z_{0,d}, \bm z_{0,1:d-1})\), where \(\bm z_0 \in [k_0,k_1]^D\). 
+When \(\bm z_{1:d-1}\) is fixed, the function \(G_d\) is a \emph{strictly} monotonically increasing function w.r.t \(z_{0,d}\), 
+where \(l_0^{d} \leq G_d(z_{0,d}, \bm z_{0,1:d-1}) \leq l^d_1\), with \(0 \leq l_0^d < l_1^d \leq 1\).
+It is also continuous
+w.r.t \(\bm z_{0,1:d-1}\), i.e given \(\bm z_{0,1:d-1}\), for all \(\epsilon > 0\) there exist a \(\delta > 0\) such that
+\begin{align}\label{eq:continG}
+    &\lvert\lvert \bm z_{0,1:d-1} - \tilde {\bm z}_{0,1:d-1} \rvert\rvert_{\infty} < \delta\\ &\implies 
+    \lvert\lvert G_d(z_{0,d}, \bm z_{0,1:d-1}) - G_d(z_{0,d} ,\tilde{\bm z}_{0,1:d-1})\rvert\rvert_{\infty} < \epsilon,\nonumber
+\end{align}
+where \(\tilde z_{0,1:d-1} \in [k_0,k_1]^{d-1}\). In addition to this, we allow for the end points \(l_0^d, l_1^d\) to change when \(z_{0,1:d-1}\) changes.
+However, they must be between 0 and 1 incuding, and \(l_0^d < l_1^d\) and due to the continuity, the changes must be continuous as well. 
+To be more precise, there must be continuity for the point \(k_0\), i.e 
+\(G_d(k_0, z_{0,1:d-1}) = l^d_0\), and equivalently for \(k_1, l_1^d\). To quickly summarize the properties of \(G_d\):
+%\(G_d(z_{0,d},\bm z_{0,1:d-1})\) is 
+\begin{itemize}
+    \item For each \(\bm z_{0,1:d-1}\): 
+        \begin{itemize}
+            \item \(\exists\, l_0^d, l_1^d \in [0,1]\) such that \(l_0^d < l_1^d\) and \(G_d\colon [k_0,k_1] \rightarrow [l_0^d, l_1^d]\).
+            \item \(G_d\) is \emph{strictly} monotonically increasing.
+            \item \(G_d(k_0, \bm z_{0,1:d-1}) = l_0^d\) and \(G_d(k_1,\bm z_{0,1:d-1}) = l_1^d\)
+        \end{itemize}
+    \item \(G_d\) is continuous w.r.t \(\bm z_{0,1:d-1}\), fulfilling \cref{eq:continG}.
+    \item The boundary points in the image of \(G_d\) may change when \(\bm z_{1:d-1}\) changes, 
+        but according to the points above, must do so continuously, with regards
+        to the same \((\delta,\epsilon)\) as in \cref{eq:continG}.
+\end{itemize}
+We wish to show we can converge towards \(G = (G_1, G_2, \dots, G_D)\) using PAF, similarly as in \cref{lemma:paf_one_dim}, by
+using the aformentioned lemma. However, we first need to make sure \((a_t,b_t)_{t=1}^T = \mathcal{H}_d(\bm z_{1:d-1})\), specified in the proof of
+\cref{lemma:paf_one_dim}, are continuous w.r.t \(\bm z_{1:d-1}\). This to confirm we can approximate \(\mathcal{H}_d\) arbitraily well using a neural network.
+\begin{lemma}\label{lemma:contin_param_paf}
+    Let \((\mathcal{A}, g_T)\) be a PAF without the \(T+2\) tranformation, with an IAR-structure. Let the function \(G\) be defined as the function
+    where each of the \(D\) outputs is defined by \(G_d\), i.e \(G = (G_1, G_2, \dots, G_D)\). Then there exist a flow on the form \(g_T\), with
+    continuity in \(\mathcal{H}_d(\bm z_{0,1:d-1})\) for all \(d \in \mathcal{D}\), which 
+    converges uniformly to \(G\). 
+\end{lemma}
+\begin{proof}
+    For all \(\bm z_{0,1:d-1}\) and for all \(\epsilon > 0\), setting \(M = \frac{1}{\ceil{\epsilon}}\) and 
+    letting \(\mathcal{H}_d\) output the parameters specified in the proof of 
+    \cref{lemma:paf_one_dim},  gives uniform convergency to \(G_d\) due to \cref{lemma:contin_param_paf}.
+    Using the same \(M\) for all \(d \in \mathcal{D}\) and designing \(\mathcal{H}_d\) as mentioned, gives uniform convergence for all \(G_d\)'s, hence
+    there exist a flow \((\mathcal{A}, g_T)\) which converges uniformly towards \(G\). We therefore only need to show continuity in \(\mathcal{H}_d\) as 
+    described, for all \(d \in \mathcal{D}\).
+
+    We show continuity for an arbitrary \(d \in \mathcal{D}\setminus \{1\}\), see \cref{lemma:paf_one_dim} for continuity when \(d=1\). 
+    Let \(\epsilon_1 > 0\). For all \(\epsilon_2 > 0\) there exist a \(\delta_2 > 0\) such that that whenever
+    \begin{align*}
+        \lvert\lvert \bm z_{0,1:d-1} - \tilde{\bm z}_{0,1:d-1}\rvert\rvert_{\infty} < \delta_2
+    \end{align*}
+    implies \(\lvert l_0^d - \tilde{l}_0^d\rvert < \epsilon_2\) and \(\lvert l_1^d - \tilde{l}_1^d\rvert < \epsilon_2\), 
+    due to continuity in \(G_d\). This also implies \(\lvert y_m - \tilde y_m \rvert < 2 \,\epsilon_2\) and combined with the fact that
+    \(\hat{\sigma}^{-1}\) is continuous, means we can choose \(\epsilon_2\) such that 
+    \(\lvert \hat{\sigma}^{-1}(y_m) - \hat{\sigma}^{-1}(\tilde y_m)\rvert < \epsilon_1\) for all \(m \in \{1,2,\dots,M\}\). 
+    Setting then \(\delta_1 = \delta_2\) gives us
+    \begin{align*}
+        \lvert\lvert \bm z_{0,1:d-1} - \tilde{\bm z}_{0,1:d-1}\rvert\rvert_{\infty} < \delta_1
+        \implies \lvert\lvert \bm b - \tilde{\bm b}\rvert\rvert_{\infty} < \epsilon_1,
+    \end{align*}
+    where \(\bm b\) and \(\tilde{\bm b}\) are vectors with the correpsonding \((b_t)_{t=1}^T\) for \(G_d(z_{0,d}, \bm z_{0,1:d-1})\) and 
+    \(G_d(z_{0,d}, \tilde{\bm z}_{0,1:d-1})\) respectively. We now simply need 
+ \end{proof}
+
+
+
+
+
+

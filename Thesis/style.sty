@@ -137,7 +137,9 @@
                 isbn       = false,
                 url        = false,
                 sortlocale = nb_NO,
-                style      = alphabetic]{biblatex}
+                style      = alphabetic,
+                maxcitenames = 1,
+                citestyle = authoryear]{biblatex}
 \DeclareNameAlias{sortname}{family-given}
 \DeclareNameAlias{default}{family-given}
 \DeclareFieldFormat[article]{volume}{\bibstring{jourvol}\addnbspace#1}
@@ -155,7 +157,7 @@
 
 %% Cross references
 \RequirePackage{varioref}
-\RequirePackage[pdfusetitle]{hyperref}
+\RequirePackage[pdfusetitle,hidelinks]{hyperref}
 \RequirePackage[nameinlink, capitalize, noabbrev]{cleveref}
 
 
@@ -636,6 +638,8 @@
 \newcommand{\dash}{\textthreequartersemdash\xspace}
 \newcommand{\TikZ}{Ti\textit{k}Z\xspace}
 \newcommand{\matlab}{\textsc{Matlab}\xspace}
+\renewcommand{\bm}[1]{\boldsymbol{#1}}
+%\newcommand{\indep}{\perp\!\!\!\perp}
 
 
 \endinput

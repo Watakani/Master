@@ -3,14 +3,18 @@
 
 \usepackage{style}           % Custom style
 \usepackage{masterfrontpage} % Front page
+\newcommand{\bm}[1]{\boldsymbol{#1}}
+\newcommand{\indep}{\perp\!\!\!\perp} 
+\usepackage{scalerel}
+\DeclareMathOperator*\bigcircop{\scalerel*{\bigcirc}{\bigodot}}
 
 \title{Title}
 \subtitle{Optional Subtitle}
 \author{Erik Lien Bolager}
 
-\includeonly
-{
-    sections/nf
+\includeonly{
+    chapters/preliminaries,
+    chapters/normalizing_flow,
 }
 
 \begin{document}
@@ -24,7 +28,8 @@
     %\listoftables       % Or \listoftables*
 
     \mainmatter         % Folios in Arabic numerals, numbered chapters.
-    \include{sections/nf}
+    \include{chapters/preliminaries}
+    \include{chapters/normalizing_flow}
     
     %\appendix           % "Chapter" is renamed "Appendix"
     %\appendixpage       % Similar to \part*{Appendices}, but appears in TOC.

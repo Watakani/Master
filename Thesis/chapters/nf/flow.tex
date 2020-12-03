@@ -1,0 +1,249 @@
+\section{Base distribution}
+There are two parts to normalizing flows. The first part is the \textit{base distribution}.
+In this thesis we do not restrict ourselves to any specific distribution in 
+the following results and discussion, unless explicitly specified.
+We do however specify three criterias it ought to follow. Let \(q_{\bm{z_0}}\) represent
+the base distribution over sample space \(\mathcal{Z}_0\), then three of its properties ought to be
+\begin{enumerate}
+    \item Continuous and parameterized by \(\bm{\theta}\).
+    \item Sample space \(\mathcal{Z}_0\) is defined on a reasonably large subset of \(\R^D\).
+    \item Fast and easy to sample from, as well as evaluating the density \(q_{\bm{z_0}}\). 
+\end{enumerate}
+The second property is there to ensure computationally that we have 
+enough unique points to represent any distribution after transformation. For example,
+define a distribution with \(\mathcal{Z}_0 = (0.999,0.9999)\). The precision we
+need in our floating-point representation to represent a distribution of a much wider
+interval through a bijective transformation is not practical (eventhough the the 
+subset \(\mathcal{Z}_0\) has the same cardinality as \(\R\) and theoretically is not a problem).
+Hence, choosing any distribution that fullfill these three properties is adequate. 
+Although, practically there can be benefits of choosing distributions with certain 
+properties e.g \(\mathcal{Z}_0 = \R^D\), heavy-tailed, bi-modal, can certainly aid
+in training w.r.t time, number of transformations needed, and convergence in finite steps.
+
+In particular, any result that is 
+such as convergence or if given flow is an universal density approximator, ought
+not to depend too much on \(q_{\bm{z_0}}\). This is to make the results as general
+ as possible, and not too assume too much a priori. If not one can trivialize 
+ properties such as universal density approximator by simply assuming 
+ we have a base distribution that is similar enough to \(p_{\bm{x}}\) such that
+a simple transformation is adequate. Hence, base distributions such as a multivariate-Gaussian or
+an Uniform distribution on \([0,1]\) are ones we typically operate with. In fact,
+the term "normalizing" comes from the fact that applying the flow backwards 
+from \(\bm{x} \sim q_{\bm{x}}\), we achieve the base distribution which is often
+a normal distribution. The exception is that we may limit the space we can sample from
+to be compact, which in \(\R^D\) case is a bounded and closed subset. 
+
+We also note that viewing the base distribution as a prior and \(q_{\bm{x}}\) as a
+posterior, although tempting, is not correct. For starter, fewer data-points does
+not neccessarily mean a posterior that is closer to the prior, as we can 
+simply overfit the smaller dataset. More crucially, we have no guarantee for
+\(\mathcal{Z}_0 = \mathcal{X}\), hence points with density 0 in "prior" can obtain
+positive density in "posterior". Hence, normalizing flows, generally, cannot be 
+intepreted as a prior with the flow transforming the prior distribution to the posterior.
+However, future research may describe a class of flows that follows the description
+above and may lead to interesting Baysian interpretations.
+
+\section{Flows}
+Second part of normalizing flows is the transformations of a 
+sample \(\bm{z}_0\) from base density to a different and hopefully more complex distribution.
+The aim of this section is to define normalzing flow formally, which we start by
+defining a pushforward measure.
+\begin{definition}[\cite{nf_review}]  
+    If \((\mathcal{Z}_0,\Sigma_{\mathcal{Z}_0})\), \((\mathcal{X}, \Sigma_{\mathcal{X}})\)
+    are measurable spaces, \(f\) is a measureable mapping between them, and 
+    \(\mu\) is a measure on \(\mathcal{Z}_0\), the one can define a measure on 
+    \(\mathcal{X}\) as
+    \begin{align}
+        f_{*}\mu(X) = \mu\left(f^{-1}(X)\right), \, \text{for all} \, X\in \mathcal{X}.
+    \end{align}
+    The measure \(f_* \mu(X)\) is known as the \textit{pushforward measure}.
+\end{definition}
+Let \((\mathcal{X}, \Sigma_{\mathcal{X}}, \nu)\) be the measure space we
+are interested in. Normalizing flows can be seen as a framework that describes
+classes of functions \(f\) and a simpler measure space 
+\((\mathcal{Z}_0, \Sigma_{\mathcal{Z}_0}, \mu)\), such that \(f_* \mu = \nu\).
+When \(\mu\) is a probability measure implies that the pushforward measure w.r.t
+\(f\) is also a probability measure. This can easily be proven by the 
+fact that 
+\begin{align*}
+    f_*\mu(\mathcal{X}) = \mu\left(f^{-1}(\mathcal{X})\right)
+    = \mu(\mathcal{Z}_0) = 1 
+\end{align*}
+and by letting \(\{X_i\mid i = 1,2,3,\dots\}\) be set with pairwise disjoint elements we have 
+\begin{align*}
+    f_* \mu\left(\bigcup\limits_{i=1}^{\infty} X_i\right) &= \mu\left(\bigcup\limits_{i=1}^{\infty} f^{-1}(X_i)\right)\\
+                                                               &= \sum_{i=1}^{\infty} \mu\left(f^{-1}(X_i)\right)\\
+                                                               &= \sum_{i=1}^{\infty} f_*\mu(X_i).
+\end{align*}
+Hence we have countable additivity, which means both the requirements for a probability measure is fulfilled. Normalizing flows
+can therefore be seen as, starting with a simple probability space \((\mathcal{Z}_0, \Sigma_{\mathcal{Z}_0}, \mu)\), applying
+\(f\) on it to achieve a pushforward distribution \((\mathcal{X}, \Sigma_{\mathcal{X}}, f_*\mu)\). The 
+goal being to find \(f\) such that the pushfoward distribution is as close as possible to 
+\((\mathcal{X}, \Sigma_{\mathcal{X}}, \nu)\), w.r.t some divergence measure.
+
+The view above is quite general, and does not lend itself directly to finding an exact density of the pushforward distribution.
+To achieve this, we need to constrain the class of functions \(f\) and the probability space.
+Firstly, as we are working with densities, we need to restrain the spaces we are working with
+such that we are guearanteed that a density exist. For this we need to introduce two properties.
+\begin{definition}(\cite{real_analysis})
+    A measure space \((\mathcal{X},\Sigma_{\mathcal{X}}, \nu)\) is called a \emph{\(\sigma\)-finite measure space}
+    if there is a sequence \(\{X_n\}_n\) of \(\Sigma_{\mathcal{X}}\)-measureable sets such that
+    \(\bigcup\limits_n X_n = \mathcal{X}\) and \(\nu(X_n) < \infty\) for each \(n\).
+\end{definition}
+\begin{definition}(\cite{real_analysis})
+    Let \((\mathcal{X}, \Sigma_{\mathcal{X}})\) be a measureable space and both \(\nu\) and
+    \(\lambda\) be measures on \(\Sigma_{\mathcal{X}}\), where \(\lambda\) is the Lebesgue 
+    measure. Then \(\nu\) is \emph{absolutely continuous} with respect to \(\lambda\) if
+    \(\nu(X) = 0\) whenever \(\lambda(X) = 0\). This is also denoted as \(\nu \ll \lambda\). 
+\end{definition}
+Constraining our measure spaces we are working with to include these two properties, we can
+guarantee that we have a density function. Any measure space we are working with in future,
+both base distribution and target distribution, are assumed to follow the properties described
+above and in the next theorem.
+\begin{theorem}[Radon-Nikodym Theorem]\label{thm:radon}
+    Let \((\mathcal{X}, \Sigma_{\mathcal{X}}, \lambda)\) be a \(\sigma\)-finite measure space
+    and \(\nu\) be a \(\sigma\)-finite measure on \(\Sigma_{\mathcal{X}}\). If \(\nu \ll \lambda\)
+    then there is a nonnegative extended real-valued \(\Sigma_{\mathcal{X}}\)-measurable function
+    \(p_{\mathcal{X}}\) on \(\mathcal{X}\) such that 
+    \begin{align}
+        \nu(X) = \int_X p_{\mathcal{X}}\, d\lambda,\quad X \in \Sigma_{\mathcal{X}}.
+    \end{align}
+\end{theorem}
+Hence the nonnegative function is the density, also called the Radon-Nikodym derivative.
+In this thesis we shall constrict ourselves to work on \(\mathcal{X} \subseteq \R^D\) and 
+with the Borel \(\sigma\)-algebra denoted \(\mathscr{B}(\mathcal{X})\), for both the base
+and target distribution. The probability spaces based of these sample spaces and \(\sigma\)-algebras 
+fulfills the conditions descibed in \cref{thm:radon}.
+
+Limiting the function \(f\) will be the last necessary component, such that we can evaluate 
+the density of the pushforward measure.
+\begin{definition}
+    A function \(f\colon \R^D \to \R^D\) is a diffeomorphism if it is bijective and 
+    both itself and its inverse is differentiable. If \(f\) and \(f^{-1}\) is \(r\) times continuous
+    differentiable, we define it as a \(C^r\)-diffeomorphism. 
+\end{definition}
+Restricting ourselves to \(f\) being at least a \(C^1\)-diffeomorphism is unnecessary and limiting.
+We therfore define piecewise diffeomorphisms w.r.t some distribution. 
+\begin{definition}
+    Let \((\mathcal{X},\mathscr{B}(\mathcal{X}), \mu)\) be a probability space 
+    with a density \(p\). Let \(X_i\) for \(i=0,1,2,\dots,k\) be a partion of \(\mathcal{X}\)
+    such that \(\mu(x \in X_0) = 0\). A piecewise-diffeomorphism \(f\colon \mathcal{X} \rightarrow \R^D\) 
+    w.r.t \(p\) is continuous and restricted to \(X_i\) is a diffeomorphism. That is, 
+    \(f_i \colon X_i \rightarrow \R^D\) is a diffeomorphism, for all \(i=1,2,\dots,k\). When
+    all \(f_i\)'s are \(C^r\)-diffeomorphisms makes \(f\) a piecewise \(C^r\)-diffeomorphism w.r.t \(p\).
+\end{definition}
+Hence, we shall restrict our choices of \(f\) to be \(C^1_p\)-diffeomorphisms, where \(p\)
+is the density to the probability space \((\mathcal{X}, \mathscr{B}(\mathcal{X}), \mu)\) that \(f\) 
+is applied to.
+We can now easily evaluate the density of the pushforward measure.
+\todo{Find good reference to thm}
+\begin{theorem}\label{thm:trans}
+    Let \(\mathcal{Z}_0 \subseteq \R^D\) and 
+    \((\mathcal{Z}_0, \mathscr{B}(\mathcal{Z}_0), \mu)\) be the base probability space.
+    Let \(f\) be a \(C_{q_{\bm z_0}}^1\)-diffeomorphism, where \(q_{\bm z_0}\) is 
+    the density to the base probability space.
+    Then the density of the pushforward distribution induced by \(f\), is defined as
+    \begin{align}\label{eq:trans}
+        q_{\bm{x}}(\bm{x}) = \sum_{i=1}^k q_{\bm{z}}(f_i^{-1}(\bm{x})) \, \lvert 
+        \text{det}(J_{f_i^{-1}}(\bm x))\rvert,
+    \end{align}
+    where \(J_{f_i^{-1}}(\bm x)\) is the Jacobian to the function \(f_i^{-1}\) evaluated at \(\bm x\).
+\end{theorem}
+Hence, we can always evaluate the density to the transformed data, which is one of the
+major advantages NF has compared to other popular generative models such as GAN. A special case of 
+the \cref{thm:trans} is when \(k=1\), which gives us the well known formula
+\begin{align*}
+    q_{\bm x}(\bm x) = q_{\bm z}(f^{-1}(\bm x))\lvert \text{det}\left(J_{f^{-1}}(\bm x)\right)\rvert.
+\end{align*}
+From the fact that the transformation is invertible, allows us also to rewrite the Jacobian above
+to \([J_{f}(\bm z_0)]^{-1}\). This follows from the fact that the Jacobian of the identity function \(f^{-1}(f(\bm z_0))\)
+is simply the identity matrix. Applying the chain rule, we have
+\begin{align*}
+    I_D = J_{f^{-1} \circ f}(\bm z_0) &= J_{f^{-1}}(f(\bm z_0)) \, J_{f}(\bm z_0)\\
+    [J_{f}(\bm z_0)]^{-1} &= J_{f^{-1}}(\bm x),
+\end{align*}
+where the inverse exist as the function is inverse, which means that the determinant of the Jacobian is nonzero,
+which means the matrix is inverse. This is a minor point, but is rather important when it comes to training. As in a
+maximum likelhood situation, we wish to send the data backwards towards base density, and we can then calculate the 
+Jacobian of the inverse simultaneously. While in a variational inference situation, we wish to sample data and transform it
+so we can evaluate the target likelihood. It is then computationally wise to also compute the Jacobian of the forward flow. 
+Hence, the equality can be important in terms of computational speed when implemented.\\
+
+One strength of flows is to compose several less complex transformations. That is, using
+\(T \in \Z^{+}\) transformations, compose the flow
+\begin{align*}
+    f(\bm z_0) &= f_T \circ f_{T-1} \circ \cdots \circ f_2 \circ f_1(\bm z_0)\\
+               &= \bigcircop_{t=1}^T f_t(\bm z_0).
+\end{align*}
+We refer to \(f\) as a flow, \(f_t\) for the transformation of the vector
+\(\bm z_{t-1}\), and componentwise tranformation of \(z_{t-1,d}\) as \(f_{t,d}\) for \(d = 1,2,\dots, D\).
+That is, the composition of \(T\) transformations is called a \emph{flow}.
+The benefit of less complex transformations \(f_t\) is that estimating the parameters to each one is not 
+as burdensome, and scaling it with more transformations is not necessarily equivalent to approximate many 
+parameters to a complex function. It also allows for sharing of information between the dimensions, while allowing for
+quick evaluation of density, which we shall come back to in \cref{seq:struct}. Using several transformations, where
+each transformation may give an easy to calculate Jacobian, means that we can easily find the density of the pushforward measure
+easily. As applying first the chain rule, we have
+\begin{align*}
+    \text{det}\left(J_{\bigcirc_{t=T}^1 f_t^{-1}}(\bm x)\right)
+    = \text{det}\left(J_{f^{-1}_1}(\bm z_{1})\cdots 
+    J_{f^{-1}_{T-1}}(\bm z_{T-1}) \cdot J_{f^{-1}_T}(\bm x)\right),
+\end{align*}
+where \(\bm z_{t} = f^{-1}_{t+1} \circ \cdots \circ f^{-1}_{T-1} \circ f^{-1}_T(\bm x)\). Using then the fact that 
+for square matrices \(A,B\) we have \(\text{det}\left(A\cdot B\right) = \text{det}(A) \cdot \text{det}(B)\), we get
+\begin{align*}
+    \text{det}\left(J_{\bigcirc_{t=T}^1 f_t^{-1}}(\bm x)\right)
+    = \prod_{t=1}^T \text{det}\left(J_{f^{-1}_t}(\bm z_t)\right).
+\end{align*}
+In terms of densities, one could have obtained the same result with regards to determinant of compositions, through
+observing that the input \(\bm z_{t-1}\) to \(f_t\) also have a density. We can then apply recursively \cref{eq:trans}, and
+when \(k=1\) for all transformations, we have the base density times \(\prod_{t=1}^T \text{det}\left(J_{f^{-1}_t}(\bm z_t)\right)\).
+
+We can now define normalizing flows formally for the purposes of this thesis. This will not be all-encompassing, as we 
+are working with a specific probability space and with discret time-steps in our flow, i.e \(t \in \Z^{+}\). There are other 
+flows defined for continuous time and with discret distributions etc. \todo{We may touch upon it later if time allows us, e.g
+continuous time}
+However, for the moment this definition will cover the majority of flows and usecases in the literature. 
+\begin{definition}
+    Let \(\mathcal{A} = (\mathcal{Z}_0, \mathscr{B}(\mathcal{Z}_0), \mu)\) be a probability space with 
+    \(\mathcal{Z}_0 \in \R^D\). Let \(f_t\) be a piecewise \(C^1\)-diffeomorphism w.r.t 
+    \(q_{\bm z_{t-1}}\) for all \(t = 1,2,\dots,T\). A \emph{normalizing flow} (NF) is defined by \((\mathcal{A}, f)\), where 
+    \(\mathcal{A}\) is the base probability space and \(f = \bigcirc_{t=1}^T f_t\)
+    is the flow. The induced density by letting a sample \(\bm z_0\) from \(\mathcal{A}\) flow
+    through \(f\) is then given by 
+    \begin{align}
+        q_{\bm z_T}(\bm z_T) = \sum_{i_{T} = 1}^{k_{T}} \cdots \sum_{i_1 = 1}^{k_1} q_{\bm z_0}\left(
+        \bigcircop_{t=T}^{1} f_{t,i_t}^{-1}(\bm z_T)\right) \prod_{t=1}^{T} \text{det}(J_{f_{t,i_t}^{-1}}(\bm z_t)),
+    \end{align}
+    where \(f_{t,i_t}\) is the diffeomorphism of tranformation \(t\) over partition \(i_t\).
+\end{definition}
+When \(f\) is a \(C^1\)-diffeomorphism, we get the induced density
+\begin{align*}
+    q_{\bm z_T}(\bm z_T) =  q_{\bm z_0}\left(
+    \bigcircop_{t=T}^{1} f_{t}^{-1}(\bm z_T)\right) \prod_{t=1}^{T} \text{det}(J_{f_{t}^{-1}}(\bm z_t)).
+\end{align*}
+Notice that in the definition of NF we have not included anything regarding the target distribution. Eventhough we 
+often speak about a flow and a target distribution, the flow is simply defined by transforming samples from a base distribution
+in such a manner that we can also evaluate the induced density. The application of flows will necessarily be concerned with
+target distribution and minimazation of some sort of measurement between target and flow induced density. One can also ask 
+questions about a particular flow and its capabilities/flexibilities w.r.t a target distribution. But ultimately, any 
+combination of \((\mathcal{A}, f)\) defined as above is a flow, no matter how trivial or impractical the resulting 
+distribution is.
+
+We know wish to find transformations \(f\) by considering the following points.
+\begin{itemize}
+    \item Flexible and expressive, such that we can always transfrom from \(\mathcal{A}\) to any distribution as
+        described above.
+    \item Limit number of parameters to estimate.
+    \item Computation wise, cheap to compute both inverse and determinants. 
+\end{itemize}
+Obviously there may be some compromises between the first and the other two points. Our goal is then
+to construct flows such that one allow for high expressitivity while remain computationally feasible.
+of the flows. 
+
+\subsection{Analytical, Tractable and Intractable Inverse}
+\todo{Ought we define a bit better what these terms mean?}
+
+
+
+
