@@ -64,7 +64,7 @@ The flow-structure is an IAR-structure and \(\mathcal{H}\) is a deep neural netw
 The flow described is referred to as NAF-DSF.
 It is only one transformation, and all its expressiveness rely on increasing number of 
 neurons in the hidden layer, \(n\). With this flow, Huang et.al proved the following theorem.
-\begin{theorem}[\cite{naf}]
+\begin{theorem}[\cite{naf}]\label{thm:nafUDA}
     Let \(\bm z_0\) be a random vector in an open set \(\mathcal{U} \subset \R^D\).
     Let \(\bm x\) be a random vector in \(\R^D\) with its density being a member of 
     \begin{align*}
@@ -302,8 +302,7 @@ that affine flow is just one of many possible flows that follows \cref{eq:aif_fl
 that uses transformations on the form \cref{eq:aif_flow} as AIFs.\todo{Write about benefits of introducing h}\\
 
 We now turn our attention to one certain AIF, which we will then show is an UDA. As far as we know, this have never been done. That is,
-to show that analytical inverse flows can be UDAs. The proof will be given in full detail, yet we will follow a lot of the same path as
-how NAF-DSF was proved to be UDA.
+to show that analytical inverse flows can be UDAs. 
 \begin{definition}
     Let \((\mathcal{A}, f)\) be a normalizing flow with corresponding flow-structure \(\mathcal{S}\). Let \(q_{\bm z_0}\) be
     the density that correpsponds to the base distribution \(\mathcal{A}\). A piecewise affine flow (PAF), is defined as
@@ -330,11 +329,12 @@ how NAF-DSF was proved to be UDA.
     where \(a_{t,d} > 0\), for \(t\in \mathcal{T}\) and \(d \in \mathcal{D}\).
 \end{definition}
 
-\todo{Chance flow-structure FILLER word when it is defined prop}
+\todo{TODO: Change flow-structure FILLER word when it is defined properly}
 The indexing of steps \(t\) is done such
-that \(T\) decides how many transformations of the form \cref{eq:h_trans}. The three other transformations are always there,
-but does not depend on any other variables than the one it transforms, and they are a little bit different then. The main reason though for this
-particular indexing is for readability during proofs, as the one parameter we can scale is the number of transformations \cref{eq:h_trans}. 
+that \(T\) decides how many transformations of the form \cref{eq:h_trans}. The three other transformations are always there and does not depend 
+on whether one adds more or fewer transformations,
+and they do not depend on any other variables than the one it transforms. Which means we relate T the the type of transformations that one can
+add more of, which simply allow us to avoid always refering to \(T-3\) transformations etc. in the following proofs.
 
 We now give an explanation of the flow. It first samples from our base distribution, then uses the standard logistic function 
 \(\frac{1}{1+\exp(-x)}\) to map our samples to \((0,1)\). Note that the transformation can be any as long as
@@ -381,7 +381,10 @@ the standard logit function, i.e inverse to the standard logistic function.
 
 \subsection{Proof of UDA}
 We are now going to prove that a normalizing flow with PAF flow and FILLER flow-structure is in fact UDA. The flow-structure we are 
-limiting ourselves to is an IAR-structure without permutations, and later on prove it for a larger class of structures. 
+limiting ourselves to is an IAR-structure without permutations, and later on prove it for a larger class of structures. This also
+allows us to talk about \(\mathcal{H}_d(z_{0,1:d-1}\), and not a function for each transformation \(t\), as they are deterministically
+defined given \(\bm z_{0}\).
+
 As we are interested in the
 expressiveness when the number of transformations increase, it makes sense to introduce \(g_{T}\). This refers to the PAF flow without
 the last logit transformation. Also, the \(T\) denotes here the number of transformations of \cref{eq:h_trans}, and not the \(T\)th transformation, 
@@ -436,7 +439,7 @@ distribution, before applying the logit function in the last step of the PAF flo
     This ensures that for all \(z_0 \in [k_0, k_1]\) we have \(g_T(z_0) \geq l_0\).
     We then uses the next \(M\) transformations to create a flow that maps \(g_T(x_m)=y_m\). This is done by handling one
     and one \(x_m\), while setting the \(b_t\) in a manner that ensures we do not change the previous \(x_{1:m-1}\), as well as
-    not change \(g_T(k_0) \geq l_0\). Quick reminder that applying the flow for \(t \in \mathcal{T}\) will first apply the standard sigmoid function to 
+    not change \(g_T(k_0) \geq l_0\). Quick reminder that applying the flow for \(t \in \mathcal{T}\) will first apply the standard logistic function to 
     input, as \(f_0(z_0) = \sigma(z_0)\). We can then define the parameters \((a_t,b_t)^{M+1}_2\) iteratively, for \(t \in \{2,\dots,M+1\}\) and 
     letting \(m=t-1\), as 
     \begin{align*}
@@ -497,7 +500,7 @@ It is also continuous
 w.r.t \(\bm z_{0,1:d-1}\), i.e given \(\bm z_{0,1:d-1}\), for all \(\epsilon > 0\) there exist a \(\delta > 0\) such that
 \begin{align}\label{eq:continG}
     &\lvert\lvert \bm z_{0,1:d-1} - \tilde {\bm z}_{0,1:d-1} \rvert\rvert_{\infty} < \delta\\ &\implies 
-    \lvert\lvert G_d(z_{0,d}, \bm z_{0,1:d-1}) - G_d(z_{0,d} ,\tilde{\bm z}_{0,1:d-1})\rvert\rvert_{\infty} < \epsilon,\nonumber
+    \lvert G_d(z_{0,d}, \bm z_{0,1:d-1}) - G_d(z_{0,d} ,\tilde{\bm z}_{0,1:d-1})\rvert < \epsilon,\nonumber
 \end{align}
 where \(\tilde z_{0,1:d-1} \in [k_0,k_1]^{d-1}\). In addition to this, we allow for the end points \(l_0^d, l_1^d\) to change when \(z_{0,1:d-1}\) changes.
 However, they must be between 0 and 1 incuding, and \(l_0^d < l_1^d\) and due to the continuity, the changes must be continuous as well. 
@@ -513,8 +516,8 @@ To be more precise, there must be continuity for the point \(k_0\), i.e
         \end{itemize}
     \item \(G_d\) is continuous w.r.t \(\bm z_{0,1:d-1}\), fulfilling \cref{eq:continG}.
     \item The boundary points in the image of \(G_d\) may change when \(\bm z_{1:d-1}\) changes, 
-        but according to the points above, must do so continuously, with regards
-        to the same \((\delta,\epsilon)\) as in \cref{eq:continG}.
+        but according to the points above, must do so continuously,
+        with regards to \cref{eq:continG}.
 \end{itemize}
 We wish to show we can converge towards \(G = (G_1, G_2, \dots, G_D)\) using PAF, similarly as in \cref{lemma:paf_one_dim}, by
 using the aformentioned lemma. However, we first need to make sure \((a_t,b_t)_{t=1}^T = \mathcal{H}_d(\bm z_{1:d-1})\), specified in the proof of
@@ -538,8 +541,8 @@ using the aformentioned lemma. However, we first need to make sure \((a_t,b_t)_{
     \begin{align*}
         \lvert\lvert \bm z_{0,1:d-1} - \tilde{\bm z}_{0,1:d-1}\rvert\rvert_{\infty} < \delta_2
     \end{align*}
-    implies \(\lvert l_0^d - \tilde{l}_0^d\rvert < \epsilon_2\) and \(\lvert l_1^d - \tilde{l}_1^d\rvert < \epsilon_2\), 
-    due to continuity in \(G_d\). This also implies \(\lvert y_m - \tilde y_m \rvert < 2 \,\epsilon_2\) and combined with the fact that
+    implies \(\lvert l_0^d - \tilde{l}_0^d\rvert < \epsilon_2\), and equvalent argument for \(l_1^d\),
+    due to continuity in \(G_d\). This means we can choose \(\delta_2\) such that \(\lvert y_m - \tilde y_m \rvert < 2 \,\epsilon_2\). Combine this with the fact that
     \(\hat{\sigma}^{-1}\) is continuous, means we can choose \(\epsilon_2\) such that 
     \(\lvert \hat{\sigma}^{-1}(y_m) - \hat{\sigma}^{-1}(\tilde y_m)\rvert < \epsilon_1\) for all \(m \in \{1,2,\dots,M\}\). 
     Setting then \(\delta_1 = \delta_2\) gives us
@@ -548,11 +551,288 @@ using the aformentioned lemma. However, we first need to make sure \((a_t,b_t)_{
         \implies \lvert\lvert \bm b - \tilde{\bm b}\rvert\rvert_{\infty} < \epsilon_1,
     \end{align*}
     where \(\bm b\) and \(\tilde{\bm b}\) are vectors with the correpsonding \((b_t)_{t=1}^T\) for \(G_d(z_{0,d}, \bm z_{0,1:d-1})\) and 
-    \(G_d(z_{0,d}, \tilde{\bm z}_{0,1:d-1})\) respectively. We now simply need 
+    \(G_d(z_{0,d}, \tilde{\bm z}_{0,1:d-1})\) respectively. 
+
+    Moving onto the \(a\)'s. Above shows that \(\hat{\sigma}^{-1}(l_0)\) is continuous w.r.t \(\bm z_{0,1:d-1}\). As 
+    \begin{align*}
+        \lim\limits_{\hat{\sigma}^{-1}(l_0) \rightarrow \sigma(k_0)}\, \frac{\hat{\sigma}^{-1}(l_0)}{\sigma(k_0)} = 1
+    \end{align*}
+    means that \(a_1\) is continuous. Shown above, we have that \(y_m\) is continuous, and since \(G_d\) is continuous and strictly increasing w.r.t
+    \(\bm z_{0,d-1}\), means that \(x_m = G_d^{-1}(y_m, z_{0,1:d-1})\) is continuous for all \(m \in \{1,\dots,M\}\). As we already know 
+    \(\hat{\sigma}^{-1}(y_1)\), \(b_2\) and \(\sigma(x_1)\) are all continuous, means 
+    \begin{align*}
+        a_2 = \frac{\hat{\sigma}^{-1}(y_1) - b_2}{\sigma(x_1) - b_2}
+    \end{align*}
+    is continuous. It follows inductively that \((a_t)_{t=3}^{M+1}\) are continuous, as \(\bigcirc_{j=0}^{t-1} f_j(x_m)\) is continuous due to 
+    the fact that \(x_m\), the standard logistic function, and all paramaters \((a_j,b_j)_{j=1}^{t-1}\) are continuous. Hence
+    \begin{align*}
+        a_t = \frac{\hat{\sigma}^{-1}(y_m) - b_t}{(\bigcirc_{j=0}^{t-1} f_j(x_m)) - b_t}
+    \end{align*}
+    is continuous. Finally, with the same argument line we have that 
+    \begin{align*}
+        \frac{\hat{\sigma}^{-1}(l_1) - b_T}{(\bigcirc_{j=0}^{T-1} f_j(k_1)) - b_T}
+    \end{align*}
+    is continuous, and 
+    \begin{align*}
+        \lim\limits_{\hat{\sigma}^{-1}(l_1) \to \bigcirc_{j=0}^{T-1} f_j(k_1)} \,
+        \frac{\hat{\sigma}^{-1}(l_1) - b_T}{(\bigcirc_{j=0}^{T-1} f_j(k_1)) - b_T} = 1
+    \end{align*}
+    means that \(a_T\) is continuous. Therefore, for any \(\bm z_{0,1:d-1}\) and for all \(\epsilon > 0\), we can find a \(\delta > 0\) for each parameter (then simply pick the smallest
+    \(\delta\) of them), such that 
+    \begin{align*}
+        \lvert\lvert \bm z_{0,1:d-1} - \tilde{\bm z}_{0,1:d-1}\rvert\rvert_{\infty} < \delta \implies \lvert\lvert \mathcal{H}_d(z_{0,1:d-1}) -
+        \mathcal{H}_d(\tilde z_{0,1:d-1})\rvert\rvert_{\infty} < \epsilon
+    \end{align*}
+    As \(d\) was arbitrarily chosen, and \(d=1\) is covered by \cref{lemma:paf_one_dim}, means it holds for all \(d \in \mathcal{D}\) and hence \(\mathcal{H}\)
+    is continuous.
+ \end{proof}
+ \begin{lemma}\label{lemma:b_contin}
+     Let \((\mathcal{A}, f)\) be a PAF with continuous parameter function \(\mathcal{H}_d\). Then, for all \(d \in \mathcal{D}\), the flow
+     \(f_d\) is continuous w.r.t \(b_t\) for all \(t \in \mathcal{T}\).
+ \end{lemma}
+ \begin{proof}
+     We only focus showing continuity for \(h_t\) for one \(t\), as the identity function of \(b_t\) is continuous, as well
+     as we have preservation of continuity when it comes to addition and function composition. What we are going to show holds is the following.
+     For every \(z_d\), for each \(\epsilon > 0\), and for each \(a\),
+     there exist a \(\delta > 0\), namely \(\delta = \epsilon/2a\), such that 
+     \begin{align*}
+         \lvert b - \tilde b\rvert <\delta \implies \lvert h_d(z_d - b_d) - h_d(z_d - \tilde b_d)\rvert < \epsilon.
+     \end{align*}
+     To show that this is true, we consider four different cases. 
+
+     Case 1: Consider when both \(z_d - b_t > 0\) as well as \(z_d - (b_t \pm \delta) > 0\) (obviously it might only hold for \(+ \delta\), in which case we
+     only consider that one). Then we have
+     \begin{align*}
+         \lvert a_t(z_d-b_t) - a_t(z_d-(b_t \pm \delta))\rvert = \lvert \pm \delta\rvert = \frac{\epsilon}{2a} < \epsilon,
+     \end{align*}
+     where we use \(\delta = \epsilon/2a\).
+
+    Case 2: Consider when both \(z_d - b_t \leq 0\) and \(z_d - (b_t \pm \delta) \leq 0\). Then we have
+    \begin{align*}
+        \lvert (z_d - b_t) - (z_d - (b_t \pm \delta))\rvert = \lvert \pm \delta\rvert = \frac{\epsilon}{2a} < \epsilon.
+    \end{align*}
+
+    Case 3: Consider when \(z_d - b_t > 0\) and \(z_d - (b_t + \delta) \leq 0\), which also means \(b_t < z_d \leq (b_t + \delta)\).
+    We then have
+    \begin{align*}
+    \lvert a_t(z_d - b_t) - (z_d - (b_t + \delta))\rvert = \lvert z_d(a_t - 1) - b_t(a_t - 1) + \delta\rvert.
+    \end{align*}
+    We can here consider three subcases. The first is when \(a_t = 1\), then obviously have 
+    \begin{align*}
+        \lvert z_d(a_t - 1) - b_t(a_t - 1) + \delta\rvert < \lvert \delta\rvert = \frac{\epsilon}{2a} < \epsilon.
+    \end{align*}
+    If \(a_t > 1\), we have, keeping in mind the bounds on \(z_d\), we have
+    \begin{align*}
+        \lvert z_d(a_t - 1) - b_t(a_t - 1) + \delta\rvert \leq \lvert (b_t+\delta) (a_t - 1) - b_t(a_t-1) + \delta \rvert = \lvert a_t \delta \rvert  = \frac{\epsilon}{2} < \epsilon.
+    \end{align*}
+    And finally, if \(a_t < 1\), we have
+    \begin{align*}
+        \lvert z_d(a_t - 1) - b_t(a_t - 1) + \delta\rvert < \lvert b_t (a_t - 1) - b_t(a_t-1) + \delta \rvert  =\lvert \delta\rvert = \frac{\epsilon}{2a} < \epsilon.
+    \end{align*}
+
+    Case 4: Finally, consider when \(z_d - b_t \leq 0\), while \(z_d - (b_t - \delta) > 0\), which gives us the bounds \((b_t-\delta) < z_d \leq b_t\).
+    We then have
+    \begin{align*}
+        \lvert (z_d - b_t) - a_t(z_d - (b_t - \delta))\rvert = \lvert z_d(1 - a_t) - b_t(1-a_t) - a_t \delta \rvert. 
+    \end{align*}
+    Considering again three subcases. When \(a_t = 1\), we have
+    \begin{align*}
+        \lvert z_d(1-a_t) - b_t(1-a_t) - a_t \delta \rvert = \lvert -a_t \delta \rvert = \frac{\epsilon}{2} < \epsilon.
+    \end{align*}
+    When \(a_t > 1\) we have, keeping in mind the boundaries given above,
+    \begin{align*}
+        \lvert z_d(1-a_t) - b_t(1-a_t) - a_t \delta \rvert \leq \lvert b_t(1-a_t) - b_t(1-a_t) - a_t \delta\rvert = \lvert -a_t \delta\rvert = \frac{\epsilon}{2} < \epsilon.
+    \end{align*}
+    And finally, when \(a_t < 1\), we have
+    \begin{align*}
+        \lvert z_d(1-a_t) - b_t(1-a_t) - a_t \delta \rvert < \lvert (b_t - \delta)(1-a_t) - b_t(1-a_t) - a_t \delta\rvert = \lvert -\delta\rvert = \frac{\epsilon}{2a} < \epsilon.
+    \end{align*}
+    Hence, \(h_t(z_d - b_t)\) is continuous w.r.t \(b_t\) for all \(t \in \mathcal{T}\) and \(d \in \mathcal{D}\). By the argument in the start of the proof, it follows that \(f_d\) is continuous w.r.t \(b_t\)
+    for all \(t\in \mathcal{T}\) and \(d \in \mathcal{D}\).
  \end{proof}
 
+ We can now show convergence to \(G\) of the flow \((\mathcal{A}, g_T)\) which approximates \(\mathcal{H}\) with neural networks. 
+\begin{lemma}\label{lemma:paf_multi_dim_NN}
+    Let \((\mathcal{A}, g_T)\) be a PAF without the T+2 transformation, with an IAR structure and for each \(d\in\mathcal{D}\), 
+    \(\mathcal{H}_d\) is approximated by a neural network \(\mathcal{NN}_{d+3}^{\phi}\) with \(k_d\) number of hidden layers.
+    Then there exist a flow of \((\mathcal{A},g_T)\) that converges toward \(G\) as \(T \rightarrow \infty\) and \(K_d \rightarrow \infty\).
+\end{lemma}
+\begin{proof}
+    We start by showing convergence for an arbitrary \(d\in \mathcal{D}\). Firstly, as the input to \(\mathcal{H}_d\) is compact and the function
+    itself is continuous as seen in \cref{lemma:contin_param_paf}, means that we can for any \(\delta > 0\) find a \(K_d\) such that whenever
+    \(k_d > K_d\) implies
+    \begin{align*}
+        \lvert\lvert \mathcal{NN}_{d+3}^{\phi}(\bm z_{0,1:d-1}) - \mathcal{H}_d(\bm z_{0,1:d-1})\rvert\rvert_{\infty} < \delta,
+    \end{align*}
+    due to \cref{thm:uni_nn}.
 
+    Let \(g_{T,d}(z_{0,d} ; \mathcal{H}_d)\) be the dth transformation of the NF, using \(\mathcal{H}_d\) to output the parameters, and equivalently
+    \(g_{T,d}(z_{0,d} ; \mathcal{NN}_{d+3}^{\phi})\). We now wish to show convergence between these two. For this we first show that \(g_{T,d}\) is 
+    uniformly continuous w.r.t to its parameters \((a_t,b_t)_{t=1}^T)\), regardless of using \(\mathcal{NN}_{d+3}^{\phi}\) or \(\mathcal{H}_d\). 
+    The line of arguments goes as follows:
+    \begin{enumerate}
+        \item The derivatives of \(g_{T,d}\) w.r.t \(a_t\) for \(t \in \mathcal{T}\),
+            \begin{align*}
+                \frac{\partial g_{T,d}}{\partial a_t} =
+                \begin{cases}
+                    z_{t,d} - b_t, & \text{if \(z_{t,d} - b_t > 0\)}\\
+                    0, & \text{otherwise}.
+                \end{cases}
+            \end{align*}
+        \item As the derivatives always exist for all \(a_t\) and from \cref{lemma:b_contin}, means \(g_{T,d}\) is continuous w.r.t its parameters, 
+            where \(d \in \mathcal{D}\).
+        \item The input to \(\mathcal{H}_d\)/\(\mathcal{NN}_{d+3}^{\phi}\) is, by definition, compact. Both functions are continuous,
+            \(\mathcal{H}_d\) due to \cref{lemma:contin_param_paf} and \(\mathcal{NN}_{d+3}^{\phi}\) follows from how we defined it
+            in \cref{def:neuralnet_kidger_def}.
+        \item Compactness and continuity of function implies compactness w.r.t output, hence the input to \(g_{T,d}\) w.r.t the paramaters is compact.
+        \item Continuity in \(g_{T,d}\) w.r.t the parameters combined with the fact that the input is compact, implies uniform convergence
+            w.r.t \((a_t,b_t)_{t=1}^T\), as \(d\) was arbitrary, means it also holds for all \(d \in \mathcal{D}\).
+    \end{enumerate}
+    Uniform convergence combined with convergence of the network, means there exist for all \(z_{0,d} \in [k_0^d, k_1^d]\) 
+    and for every \(\epsilon/2 >0\) a \(\delta > 0\) (by picking \(K_d\) large enough), such that
+    \begin{align*}
+        &\lvert\lvert \mathcal{NN}_{d+3}^{\phi}(\bm z_{0,1:d-1}) - \mathcal{H}_d(\bm z_{0,1:d-1})\rvert\rvert_{\infty} < \delta\\
+        &\implies \lvert g_{T,d}(z_{0,d} ; \mathcal{NN}_{d+3}^{\phi}) - g_{T,d}(z_{0,d} ; \mathcal{H}_d)\rvert < \frac{\epsilon}{2}
+    \end{align*}
+    By combining this with \cref{lemma:contin_param_paf}, shows that for all \(z_{0, 1:d} \in [k_0,k_1]^{d}\) and for every \(\epsilon > 0\),
+    there exist a \(T_d\) and \(K_d\) such whenever \(T > T_d\) and \(k_d > K_d\), we have
+    \begin{align*}
+        \lvert g_{T,d}(z_{0,d};\mathcal{NN}_{d+3}^{\phi}) &- G_d(z_{0,d}, z_{0,1:d-1})\rvert \\
+        \leq &\lvert g_{T,d}(z_{0,d};\mathcal{NN}_{d+3}^{\phi}) - g_{T,d}(z_{0,d};\mathcal{H}_d)\rvert + \\
+        &\lvert g_{T,d}(z_{0,d};\mathcal{H}_d) - 
+        G_d(z_{0,d}, z_{0,1:d-1})\rvert\\
+        < &\frac{\epsilon}{2} + \frac{\epsilon}{2} = \epsilon
+    \end{align*}
+    For all \(\bm z_0 \in [k_0,k_1]^D\) and for every \(\epsilon > 0\) there must exist an 
+    \begin{align*}
+        U = \{U \mid U \in \mathcal{D} \text{ and } T_U = \sup\{T_d\}_{d=1}^D\}
+    \end{align*}
+    and a
+    \begin{align*}
+        V = \{V \mid V \in \mathcal{D} \text{ and } K_V = \sup\{K_d\}_{d=1}^D\}
+    \end{align*}
+    such that \((k_d > V)_{d=1}^D\) and \(T > U\), we have
+    \begin{align*}
+        \lvert\lvert g_{T}(\bm z_0;\mathcal{NN}_{d+3}^{\phi}) - G(\bm z_{0}) \rvert\rvert_{\infty} < \epsilon,
+    \end{align*}
+    where \(g_T(\bm z_0 ;\mathcal{NN}_{d+3}^{\phi})\) is the NF with a neural network for each dimension, following
+    the \cref{def:neuralnet_kidger_def} and each with \(k_d\) depth.
+\end{proof}
+We now define the class 
+of distributions we are proving that PAF with IAF-structure is an UDA for. 
+\begin{definition}\label{def:strict_condit_fam}
+    Let \(\mathcal{X} \subseteq \R^D\) be a connected subset.
+    The \emph{strictly conditionally continuous}-family is the class of densities 
+    \(\mathscr{P}\) such that the density \(p_{\bm x} \in \mathscr{P}\) follows
+    \begin{align*}
+        \begin{cases}
+            p_{\bm x}(\bm x)  > 0, & \text{if \(\bm x \in \mathcal{X}\)}\\
+            p_{\bm x}(\bm x) = 0, & \text{if \(\bm x \notin \mathcal{X}\)}.
+        \end{cases}
+    \end{align*}
+    Also, the conditional CDF of the density, \(F_d(x_d \mid \bm x_{1:d-1})\), is continuous w.r.t \(\bm x_{1:d-1}\). 
+\end{definition}
+The class used in \cref{thm:nafUDA}, regarding UDA of NAF-DSF, is obviously contained in the class above. However this one
+is larger as we allow for both discontinuities in the density and also the density to be 0 at some subset of \(\R^D\).
+Before we can prove the main result in this section, we need to include an important lemma shown by \cite{naf}.
+\begin{lemma}[Lemma 4, \cite{naf}]\label{lemma:huang_conv}
+    Let \(\mathcal{Z} \subseteq \R^D\) and \(\mathcal{X} \subseteq \R^D\), with each bein the sample space of a probability space,
+    i.e \((\mathcal{Z}, \mathscr{B}(\mathcal{Z}), \mu)\) and \((\mathcal{X}, \mathscr{B}(\mathcal{X}), \nu)\). Let 
+    \(J\colon \mathcal{Z} \to \mathcal{X}\) be any function and \(J_n\) be a sequence of functions such that \(J_n\) converges
+    pointwise to \(J\). Then a transformation of the form \(x_n = J_n(z)\) converges in distribution to \(x = J(z)\).
+\end{lemma}
+The proof is quite straightforward by introducing a bounded continuous function \(h\), and show convergence in expectation of
+\(h(z_n)\) to \(h(z)\) by dominated convergence theorem. Then simply finish it by applying the Portmanteau's lemma. 
+\begin{theorem}\label{thm:paf_uda_multi}
+    Let \((\mathcal{A}, f)\) be a PAF with IAR-structure with, for each \(d \in \mathcal{D}\), the paramaters are
+    computed by a neural network \(\mathcal{NN}_{d+3}^{\phi}\) with arbitrarily depth. Let \(\mathscr{P}\) be the class of densities defined
+    as strictly conditionally continuous. There exist flow \(f\) for every distribution \(p_{\bm x}\) in \(\mathscr{P}\) such 
+    that when the number of transformations \(T\to \infty\), \(f(\bm z_0) \xrightarrow{d} \bm x\) 
+\end{theorem}
+\begin{proof}
+    Let \(F\colon \R^D \to [0,1]^D\) with the \(d\)th output defined as the conditional CDF to \(p_{\bm x}\), i.e 
+    \(\hat{x}_d = F_d(x_d \mid x_{1:d-1}) = Pr(X_d < x_d \mid x_{1:d-1})\). With \(\bm x \in [0,1]^D\). When we are
+    working with \(\bm x_{1:d-1}\), we are implictly restricting possible values such that \(p_{\bm x}(x_d \mid \bm x_{1:d-1}) > 0\) 
+    for some \(x_d \in \R\). Due to \(\mathscr{P}\), we have that the set of possible values \(\bm x_{1:d-1}\) is a connected subset
+    of \(\R^{d-1}\), hence when we have a \(\bm x_{1:d-1}\) and talk about 
+    \(\lvert\lvert \bm x_{1:d-1} - \tilde{\bm x}_{1:d-1}\rvert\rvert_{\infty}\) we talk about the set which fulfill the inequality 
+    and also are possible values. They in themselves comprise of a connected subspace which is never empty nor only \(\bm x_{1:d-1}\). Going forward we 
+    are implictly adding this restriction.
 
+    When \(x_{1:d-1}\) is fixed, we have two numbers
+    \(l_0^d < l_1^d\) (we allow for \(\pm \infty\)), such that it is strictly monotonically increasing when
+    \(x_d \in [l_0^d, l_1^d]\) (obviously the set is open when \(\pm \infty\)) per the requirement of stricly positive density, 
+    0 when \(x_d < l_0^d\) and 1 when \(x_d > l_1^d\). We can also see, due to continuity in the conditional, that the boundary points
+    when restricted to the strictly monotonically increasing part can change, but only continuously in the same manner as with \(G_d\). 
+    Think of it as the part that is 0 and 1 in the \(F_d\) can only change slightly and only the part that is close to the stricly increasing part,
+    otherwise we break the continuity of \(F_d\) w.r.t \(\bm x_{1:d-1}\). 
 
+    Let \(F^{-1}_d(\hat{x}_d \mid \bm x_{1:d-1})\) be defined as the inverse of \(F_d(x_d\mid \bm x_{1:d-1})\), where the image of the inverse is simply the values mapping to the strictly increasing part. 
+    We call this interval for \(I \subseteq\R\), so \(F_d\colon I \to [0,1]\) is strictly increasing.
+    We now show continuity for the inverse w.r.t both \(\hat{x}_d\), and also w.r.t \(\bm x_{1:d-1}\). When \(\bm x_{1:d-1}\) is fixed, means the inverse \(F^{-1}_d\) is continuous w.r.t \(x_d\), as \(F_d\)
+    restricted to the interval that is the image of \(F^{-1}_d\) is strictly increasing and continuous. This is easy to see, as for any \(\epsilon > 0\) and any \(x_d \in I\), we have
+    \begin{align*}
+        F_d(x_d - \epsilon \mid \bm x_{1:d-1}) < F_d(x_d\mid \bm x_{1:d-1}) < F_d(x_d + \epsilon \mid \bm x_{1:d-1}),
+    \end{align*}
+    which by setting \(\delta\) to be the minimum of \(\lvert F_d(x_d \pm \epsilon \mid \bm x_{1:d-1} - F_d(x_d \mid \bm x_{1:d-1})\rvert\) (some small minor details when \(x_d\) is a boundary point in \(I\) 
+    or if \( x_d\pm \epsilon \notin I\), however this is easy to handle by considering left/right continuity in the boundary case and simply picking some points closer towards \(F_d(x_d\mid \bm x_{1:d-1})\) in the
+    second case). 
 
+    Next we look at continuity w.r.t \(\bm x_{1:d-1}\). Let \(\epsilon > 0\) and for any \(\bm x_{1:d-1}\) we have the following. Let \(\delta_1 > 0\) be set so that 
+    \begin{align*}
+        \lvert \hat{x}_d - \hat{x}_d'\rvert < \delta_1 \implies \lvert F_d^{-1}(\hat{x}_d \mid \bm x_{1:d-1}) - F_d^{-1}(\hat{x}_d' \mid  \bm x_{1:d-1})\rvert <\epsilon.
+    \end{align*}
+
+    Using continuity in conditional CDF, we can find \(\delta_2 > 0\) such that whenever \(\lvert\lvert \bm x_{1:d-1} - \tilde{\bm x}_{1:d-1} \rvert\rvert_{\infty} < \delta_2\) we have
+    \begin{align}\label{eq:delta1}
+        \lvert F_d(x_d \mid \bm x_{1:d-1}) - F_d(x_d \mid \tilde{\bm x}_{1:d-1})\rvert < \delta_1.
+    \end{align}
+    Let 
+    \begin{align*}
+        \tilde X = \{\tilde{\bm x}_{1:d-1} \mid \, \lvert\lvert \tilde{\bm x}_{1:d-1} - x_{1:d-1} \rvert\rvert_{\infty} < \delta_2\}
+    \end{align*}
+    a mapping \(\eta\colon \tilde X \to (0, 1]\) defined as 
+    \begin{align*}
+        \eta(\tilde{\bm x}_{1:d-1}) = \sup\{\delta \mid \forall \hat{x}_d':\lvert \hat{x}_d - \hat{x}_d' \rvert < \delta \implies \lvert F_d^{-1}(\hat{x}_d \mid \tilde{\bm x}_{1:d-1}) - 
+        F_d^{-1}(\hat{x}_d' \mid \tilde{\bm x}_{1:d-1}) \rvert < \epsilon\}.
+    \end{align*}
+    This mapping simply take the larges \(\delta\) that fulfills continuity w.r.t \(\hat{x}_d\) or 1, if the value can be larger than one. We know at least one
+    such \(\delta\) exist, as we know there continuity when what we condition on is fixed.
+    Let then \(\delta_3 > 0\) be defined as
+    \begin{align*}
+        \delta_3 = \inf\{\delta \mid \tilde{\bm x}_{1:d-1} \in \tilde X \text{ and } \delta = \eta(\tilde{\bm x}_{1:d-1})\}
+    \end{align*}
+    and set \(\delta_4\) equivalently to how we set \(\delta_2\) using \cref{eq:delta1}, but replacing \(\delta_1\) with \(\delta_3\). 
+    For any \(\tilde{\bm x}_{1:d-1}\), let \(\hat{x}_d = F_d(x_d \mid \bm x_{1:d-1})\) and \(\hat{x}_d' = F_d(x_d\mid \tilde{\bm x}_{1:d-1})\), then
+    whenever \(\lvert \bm x_{1:d-1} - \tilde{\bm x}_{1:d-1} \rvert < \delta_4\) we have
+    \begin{align*}
+        &\lvert F_d^{-1}(\hat{x}_d \mid \bm x_{1:d-1}) - F_d^{-1}(\hat{x}_d \mid \tilde{\bm x}_{1:d-1})\rvert\\
+        \leq & \lvert F_d^{-1}(\hat{x}_d \mid \bm x_{1:d-1}) - F_d^{-1}(\hat{x}_d' \mid \tilde{\bm x}_{1:d-1})\rvert
+        + \lvert F_d^{-1}(\hat{x}_d' \mid \tilde{\bm x}_{1:d-1}) - F_d^{-1}(\hat{x}_d \mid \tilde{\bm x}_{1:d-1})\rvert\\
+        =& \, 0 + \lvert F_d^{-1}(\hat{x}_d' \mid \tilde{\bm x}_{1:d-1}) - F_d^{-1}(\hat{x}_d \mid 
+        \tilde{\bm x}_{1:d-1})\rvert.
+    \end{align*}
+    Due to continuity w.r.t \(\bm x_{1:d-1}\), we have  \(\lvert \hat{x}_d - \hat{x}_d'\rvert < \delta_3\), hence we
+    have 
+    \begin{align*}
+        \lvert F_d^{-1}(\hat{x}_d' \mid \tilde{\bm x}_{1:d-1}) - F_d^{-1}(\hat{x}_d \mid 
+        \tilde{\bm x}_{1:d-1})\rvert < \epsilon.
+    \end{align*}
+    If we now apply the standard logistic function, \(\sigma(F_d^{-1}(\hat{x}_d \mid \bm x_{1:d-1}))\), 
+    we have something
+    very close to \(G_d\), but the domain is different. If we now construct a function \(G_d\) as a composition 
+    of the following two steps,
+    with \(\bm z_{0,1:d} \in [k_0, k_1]^{d}\),
+    \begin{align*}
+        \hat{\bm z}_{0,1:d} &= \frac{\sigma(\bm z_{0,1:d}) - \sigma(k_0)}{\sigma(k_1)}\\
+                            &\sigma\circ F^{-1}_d(\hat{z}_{0,d} \mid \hat{\bm z}_{0,1:d-1}),
+    \end{align*}
+    where everything is elementwise on the first line.
+    Letting \(G= (G_1,G_2, \dots, G_D)\), we know from \cref{lemma:paf_multi_dim_NN} that there exist 
+    a flow \(g_T\) with IAR-structure and approximating \(\mathcal{H}\) with neural networks, 
+    such that it converges uniformly to \(G\). As uniform convergence implies pointwise and adding
+    the logit function to \(G\) and \(g_T\), which preserves continuity, means 
+    \(\bm z_T = f(\bm z_0) = \sigma^{-1}(g_T(\bm z_0))\) converges to \(\sigma^{-1}(G(\bm z_0))\). Hence,
+    due to \cref{lemma:huang_conv}, \(\bm z_T \xrightarrow{d} \bm x\).
+\end{proof}
 
