@@ -18,6 +18,9 @@
 #Own clean-up scheme
 .clean.sh
 
+.ipynb_checkpoints
+__pychache__
+
 ## Intermediate documents:
 *.dvi
 *.xdv
