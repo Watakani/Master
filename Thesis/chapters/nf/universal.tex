@@ -793,14 +793,15 @@ The proof is quite straightforward by introducing a bounded continuous function 
     \end{align*}
     a mapping \(\eta\colon \tilde X \to (0, 1]\) defined as 
     \begin{align*}
-        \eta(\tilde{\bm x}_{1:d-1}) = \sup\{\delta \mid \forall \hat{x}_d':\lvert \hat{x}_d - \hat{x}_d' \rvert < \delta \implies \lvert F_d^{-1}(\hat{x}_d \mid \tilde{\bm x}_{1:d-1}) - 
+        \eta(\tilde{\bm x}_{1:d-1}) = \max\{\delta \mid 0< \delta \leq 1 &\text{ and } \forall \hat{x}_d':\lvert \hat{x}_d - \hat{x}_d' \rvert < \delta\\
+                                    &\implies \lvert F_d^{-1}(\hat{x}_d \mid \tilde{\bm x}_{1:d-1}) - 
         F_d^{-1}(\hat{x}_d' \mid \tilde{\bm x}_{1:d-1}) \rvert < \epsilon\}.
     \end{align*}
-    This mapping simply take the larges \(\delta\) that fulfills continuity w.r.t \(\hat{x}_d\) or 1, if the value can be larger than one. We know at least one
+    This mapping simply take the largest \(\delta\) that fulfills continuity w.r.t \(\hat{x}_d\) or 1, if the value can be larger than one. We know at least one
     such \(\delta\) exist, as we know there continuity when what we condition on is fixed.
     Let then \(\delta_3 > 0\) be defined as
     \begin{align*}
-        \delta_3 = \inf\{\delta \mid \tilde{\bm x}_{1:d-1} \in \tilde X \text{ and } \delta = \eta(\tilde{\bm x}_{1:d-1})\}
+        \delta_3 = \min\{\delta \mid \tilde{\bm x}_{1:d-1} \in \tilde X \text{ and } \delta = \eta(\tilde{\bm x}_{1:d-1})\}
     \end{align*}
     and set \(\delta_4\) equivalently to how we set \(\delta_2\) using \cref{eq:delta1}, but replacing \(\delta_1\) with \(\delta_3\). 
     For any \(\tilde{\bm x}_{1:d-1}\), let \(\hat{x}_d = F_d(x_d \mid \bm x_{1:d-1})\) and \(\hat{x}_d' = F_d(x_d\mid \tilde{\bm x}_{1:d-1})\), then
@@ -835,4 +836,42 @@ The proof is quite straightforward by introducing a bounded continuous function 
     \(\bm z_T = f(\bm z_0) = \sigma^{-1}(g_T(\bm z_0))\) converges to \(\sigma^{-1}(G(\bm z_0))\). Hence,
     due to \cref{lemma:huang_conv}, \(\bm z_T \xrightarrow{d} \bm x\).
 \end{proof}
+
+Lets now consider the case when \(D=1\), in which any flow with affine transformations failed be an UDA
+for any meaningful class of distributions. It turns out that in this case one can show that PAF is 
+and UDA for an even larger class of distribution. The class of distributions is the set of all
+continuous distributions. To show this we quickly introduce another flow, quite similar to PAF.
+\begin{align}\label{eq:one_dim_backward}
+    \hat{\sigma} \circ \bigcirc_{t=1}^{T_1} f_{t} \circ \hat{\sigma}^{-1} \circ \sigma(x).
+\end{align}
+And a quick reminder of what PAF without \(T+2\) transformation looks like,
+\begin{align}\label{eq:one_dim_forward}
+    \hat{\sigma} \circ \bigcirc_{t=1}^{T_2} f_t \circ \sigma(z_0).
+\end{align}
+\begin{proposition}
+    Let \((\mathcal{A}, f)\) be a PAF with \(\mathcal{H}\) being 
+    approximated by a \(\mathcal{NN}_{2\,T + 3}^{\phi}\) and \(D=1\). Let \(\mathscr{P}\) be the class
+    of all possible densities. For any density \(p_{x} \in \mathscr{P}\), there exist
+    a flow \(f\) such that when the number of transformations \(T \rightarrow \infty\), 
+    \(f(z_0) \xrightarrow{d} x\).
+\end{proposition}
+\begin{proof}
+    With minor changes in the proof of \cref{lemma:paf_one_dim}, we can easily show the
+    same result holds for \cref{eq:one_dim_backward}.
+    Let \(F_1(z_0)\) be the CDF of \(\mathcal{A}\), and \(F_2(x)\) is the CDF to \(p_{x} \in \mathscr{P}\).
+    From \cref{lemma:paf_one_dim}, we have that \cref{eq:one_dim_forward} can arbitraily well
+    approximate \(F_1\), and equally with \(F_2\) and \cref{eq:one_dim_backward}. Setting \(T=T_1 + T_2\)
+    and observing that the composition of \cref{eq:one_dim_forward} and the inverse of \cref{eq:one_dim_backward}
+    gives a PAF. From \cref{lemma:paf_one_dim}, we know that we can
+    find this approximation by letting the parameter-function \(\mathcal{H}\) be a neural network.
+    The composition approximate arbitrarily well \(F_2^{-1} \circ F_1(z_0)\). Following \cref{lemma:huang_conv}
+    we have that \(z_T \xrightarrow{d} x\). 
+\end{proof}
+This shows the effect of the non-linearity we discussed above. An effect that makes the smoking
+gun when it comes to show that affine transformations can be an UDA, is quite the opposite for PAF.
+
+
+
+
+    
 

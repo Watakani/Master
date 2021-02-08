@@ -5,7 +5,12 @@ import torch.functional as F
 
 
 class NormalizingFlow(nn.Module):
-    def __init__(self, flows, base_distr, kl_forward=True):
+    def __init__(
+            self, 
+            flows,
+            base_distr, 
+            kl_forward=True):
+
         super().__init__()
 
         self.flows = nn.ModuleList(flows)
@@ -70,12 +75,3 @@ class NormalizingFlow(nn.Module):
 
         log_det += self.base_distr.log_prob(z[-1])
         return z[::-1], log_det
-
-
-
-
-            
-
-
-
-
