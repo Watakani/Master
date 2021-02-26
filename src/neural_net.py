@@ -8,8 +8,10 @@ class NeuralNet(nn.Module):
             dim_in,
             dim_hidden,
             dim_out,
-            act_funct=nn.ReLU(),
+            act_func=nn.ReLU(),
             bias=True):
+
+        super().__init__() 
 
         self.dim_in = dim_in
         self.dim_hidden = dim_hidden

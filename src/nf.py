@@ -21,12 +21,12 @@ class NormalizingFlow(nn.Module):
     def forward(self, x):
         return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
 
-    def forward_flow(self, x):
+    def forward_flow(self, z_0):
         dim_row, _ = x.shape
         log_prob = torch.zeros(dim_row)
-        log_prob += self.base_distr.log_prob(x)
-        z = [x]
-        z_i = x
+        log_prob += self.base_distr.log_prob(z_0)
+        z = [z_0]
+        z_i = z_0
 
         for f in self.flow:
             z_i, log_det_i = f(z_i)
@@ -45,7 +45,7 @@ class NormalizingFlow(nn.Module):
             z_i, log_det_i = f(z_i)
             log_prob += log_det_i
             z.append(z_i)
-        
+
         log_prob += self.base_distr.log_prob(z[-1])
         return z[::-1], log_prob
 
@@ -70,7 +70,7 @@ class NormalizingFlow(nn.Module):
         z = [x]
         z_i = x
 
-        for f in self.flow:
+        for f in self.flow[::-1]:
             z_i, log_det_i = f.backward_flow(z_i)
             log_prob += log_det_i
             z.append(z_i)

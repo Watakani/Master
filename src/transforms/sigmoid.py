@@ -11,12 +11,12 @@ class Sigmoid(Transformation):
 
     def forward_trans(self, z):
         x = torch.sigmoid(z)
-        log_det = z - 2*torch.log(1+torch.exp(z))
+        log_det = torch.sum(z - 2*torch.log(1+torch.exp(z)), dim=1)
 
         return x, log_det
 
-    def backward_trans(self, x):
+    def backward_trans(self, ):
         z = torch.log(x/(1-x))
-        log_det = -(torch.log(1-x) + torch.log(x))
+        log_det = torch.sum(torch.log(-1/((x-1)*x)))
 
         return z, log_det

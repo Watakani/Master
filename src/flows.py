@@ -90,7 +90,7 @@ def create_realnvp(
         base_distr=None,
         act_func=nn.ReLU()):
 
-    if base_distr != None: 
+    if base_distr is None: 
         base_distr = create_std_gaussian(dim_input)
 
     permutations = get_permutation(perm_type, dim_input, num_trans)
@@ -114,18 +114,45 @@ def create_paf(
         act_func=nn.ReLU()):
 
     if base_distr is None: 
-        create_std_gaussian(dim_input)
-
+        base_distr = create_std_gaussian(dim_input)
     permutations = get_permutation(perm_type, dim_input, num_trans)
-    flow = [ID(Sigmoid(), kl_forward)]
+    flow = []
 
     for t in range(num_trans):
         trans = PiecewiseAffine()
-        struct = IAR(dim_in, dim_hidden, trans, permutations[t], 
+        struct = IAR(dim_input, dim_hidden, trans, permutations[t], 
                         kl_forward, act_func)
         flow.append(struct)
 
-    flow.append(ID(SigmoidPos(), kl_forward))
-    flow.append(ID(Logit(), kl_forward))
+    return NormalizingFlow(flow, base_distr, kl_forward)
+
+def create_flows(
+        dim_input,
+        dim_hidden,
+        num_trans,
+        perm_type='identity',
+        kl_forward=True,
+        base_distr=None,
+        structure=IAR,
+        transformation=PiecewiseAffine,
+        act_func=nn.ReLU()):
+
+    if base_distr is None: 
+        base_distr = create_std_gaussian(dim_input)
+    permutations = get_permutation(perm_type, dim_input, num_trans)
+    flow = []
+
+    if not isinstance(transformation, list):
+        transformation = [transformation] * num_trans
+
+    if not isinstance(structure, list):
+        structure = [structure] * num_trans
+
+    for t in range(num_trans):
+        trans = transformation[t]()
+        struct = structure[t](dim_input, dim_hidden, trans, permutations[t], 
+                        kl_forward, act_func)
+        flow.append(struct)
 
     return NormalizingFlow(flow, base_distr, kl_forward)
+

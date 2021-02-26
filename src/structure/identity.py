@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 class ID(nn.Module):
     def __init__(
             self,
@@ -17,7 +16,9 @@ class ID(nn.Module):
         return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
 
     def forward_flow(self, z):
-        return self.transform(z, forward=True)
+        x, log_det = self.transform(z, forward=True)
+        return x, log_det
 
     def backward_flow(self, x):
-        return self.transform(x, forward=False)
+        z, log_det = self.transform(z, forward=False)
+        return z, log_det

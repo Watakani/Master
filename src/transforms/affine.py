@@ -19,6 +19,6 @@ class Affine(Transformation):
     def backward_trans(self, x, param):
         sigma, mu = param[0], param[1]
         z = (x - mu) * torch.exp(-sigma)
-        log_det = -sigma
+        log_det = torch.sum(-sigma, dim=1)
         
         return z, log_det

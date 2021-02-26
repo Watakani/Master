@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 
 from made import MADE
+from utils import permute_data, inv_permute_data
 
 
 class IAR(nn.Module):
@@ -28,28 +29,33 @@ class IAR(nn.Module):
         self.permutation = permutation
 
     def forward(self, x):
-        x = x[:, self.permutation.permute()]
-        x, log_det = self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
-        x = x[:, self.permutation.inv_permute()]
-        return x, log_det
+        return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
 
     def forward_flow(self, z):
+        z = permute_data(z, self.permutation)
+
         res = self.made_net(z)
         param = res.split(self.dim_in, dim=1)
 
         x, log_det = self.transform(z, param, forward=True)
 
+        x = inv_permute_data(x, self.permutation)
         return x, log_det
 
     def backward_flow(self, x):
+        x = permute_data(x, self.permutation)
+
         z = torch.zeros_like(x)
         log_det = torch.zeros(x.shape[0])
 
         for d in range(self.dim_in):
             res = self.made_net(z.clone())
             res = res.split(self.dim_in, dim=1)
-            param = [res_dim[:,d] for res_dim in res]
+            param = [res_dim[:,d:(d+1)] for res_dim in res]
 
-            z[:,d],log_det_dim = self.transform(x[:,d], param, forward=False)
+            z[:,d:(d+1)], log_det_dim = self.transform(x[:,d:(d+1)], param, 
+                                            forward=False)
             log_det = log_det + log_det_dim
+
+        z = inv_permute_data(z, self.permutation)
         return z, log_det

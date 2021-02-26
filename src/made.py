@@ -11,6 +11,7 @@ class MaskedLinear(nn.Linear):
         #Swithced out and in as nn.Linear uses x*A^T + b
         #Register buffer is saved as state_mask, moves to cuda/cpu with rest, but no gradient
         self.register_buffer('mask', torch.ones(layer_out, layer_in))
+        #self.weight = nn.Parameter(self.weight * 0.01)
 
     def set_mask(self, mask):
         self.mask.data.copy_(torch.from_numpy(mask.astype(np.uint8).T))

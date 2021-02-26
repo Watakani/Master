@@ -6,14 +6,14 @@ class Transformation(nn.Module):
         super().__init__()
         self.parameter_count = parameter_count
 
-    def forward(self, x, param, forward=True):
-        return self.forward_trans(x, param) if forward else self.backward_trans(x, param)
+    def forward(self, *x, forward=True):
+        return self.forward_trans(*x) if forward else self.backward_trans(*x)
 
     def forward_trans(self):
-        pass
+        raise NotImplementedError()
 
     def backward_trans(self):
-        pass
+        raise NotImplementedError()
 
     def get_param_count(self):
         return self.parameter_count
