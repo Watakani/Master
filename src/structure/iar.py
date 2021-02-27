@@ -55,6 +55,8 @@ class IAR(nn.Module):
 
             z[:,d:(d+1)], log_det_dim = self.transform(x[:,d:(d+1)], param, 
                                             forward=False)
+            print('log_det', log_det.is_cuda)
+            print('log_det_dim', log_det_dim.is_cuda)
             log_det = log_det + log_det_dim
 
         z = inv_permute_data(z, self.permutation)

@@ -22,8 +22,8 @@ def train_forward(
         dev = "cpu"
 
     device = torch.device(dev)  
-    train_data.to(device)
-    model.to(device)
+    #train_data.to(device)
+    #model.to(device)
 
     batches = DataLoader(dataset=train_data, batch_size=batch_size, 
                             shuffle=True) 
@@ -83,8 +83,8 @@ def train_backward(
         dev = "cpu"
 
     device = torch.device(dev)  
-    train_data.to(device)
-    model.to(device)
+    #train_data.to(device)
+    #model.to(device)
 
     num_train_data, _ = train_data.size()
 
