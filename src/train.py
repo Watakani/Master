@@ -17,7 +17,7 @@ def train_forward(
     ):
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    train_data.to(device)
+    train_data = train_data.to(device)
     
 
     batches = DataLoader(dataset=train_data, batch_size=batch_size, 
