@@ -11,10 +11,10 @@ class ToyDataset(Dataset):
 
         if data_distr is None:
             data_distr = create_mvnormal(dim_input)
-        
+
         if num_train < 1:
             num_train = int(samples * num_train)
-        
+
         self.train_data = data_distr.sample((num_train,)).to(device)
         self.test_data = data_distr.sample((samples - num_train,)).to(device)
         self.data_distr = data_distr
@@ -38,4 +38,4 @@ def create_mvnormal(dim_input):
     mean = torch.rand(dim_input) * 8.0
 
     return torch.distributions.multivariate_normal.MultivariateNormal(
-                        mean, sigma)
+            mean, sigma)
