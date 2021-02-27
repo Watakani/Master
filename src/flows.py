@@ -31,9 +31,10 @@ def get_permutation(perm_type, dim_input, num_trans):
     return permutations
 
 def create_std_gaussian(dim_input):
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     return torch.distributions.multivariate_normal.MultivariateNormal(
-                        torch.zeros(dim_input), 
-                        torch.eye(dim_input))
+                        torch.zeros(dim_input).to(device), 
+                        torch.eye(dim_input).to(device))
 
 def create_iaf(
         dim_input, 
