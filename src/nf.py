@@ -48,6 +48,7 @@ class NormalizingFlow(nn.Module):
             log_prob += log_det_i
             z.append(z_i)
 
+        print(z[-1].is_cuda)
         log_prob += self.base_distr.log_prob(z[-1])
         return z[::-1], log_prob
 

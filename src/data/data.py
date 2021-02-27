@@ -1,11 +1,11 @@
 class Dataset:
 
     def __init__(self):
-        pass
+        raise NotImplementedError()
 
     def get_training_data():
-        pass
+        raise NotImplementedError()
 
     def get_test_data():
-        pass
+        raise NotImplementedError()
 
