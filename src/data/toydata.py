@@ -15,8 +15,8 @@ class ToyDataset(Dataset):
         if num_train < 1:
             num_train = int(samples * num_train)
 
-        self.train_data = data_distr.sample((num_train,)).to(device)
-        self.test_data = data_distr.sample((samples - num_train,)).to(device)
+        self.train_data = data_distr.sample((num_train,)).to(self.device)
+        self.test_data = data_distr.sample((samples - num_train,)).to(self.device)
         self.data_distr = data_distr
 
     def get_training_data(self):
@@ -26,10 +26,10 @@ class ToyDataset(Dataset):
         return self.test_data
 
     def sample(self, n):
-        return self.data_distr.sample((n,)).to(device)
+        return self.data_distr.sample((n,)).to(self.device)
 
     def evaluate(self, x):
-        return self.data_distr.log_prob(x).to(device)
+        return self.data_distr.log_prob(x).to(self.device)
 
 
 def create_mvnormal(dim_input):

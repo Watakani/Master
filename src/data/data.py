@@ -1,6 +1,4 @@
 class Dataset:
-    def __init__(self):
-
     def get_training_data():
         raise NotImplementedError()
 
