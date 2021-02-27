@@ -10,3 +10,4 @@ def permute_data(data, permutation):
 
 def inv_permute_data(data, permutation):
     return data[:, permutation.inv_permute()]
+

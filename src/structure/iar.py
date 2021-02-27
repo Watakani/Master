@@ -28,6 +28,8 @@ class IAR(nn.Module):
         self.transform = transform
         self.permutation = permutation
 
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
     def forward(self, x):
         return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
 
@@ -46,7 +48,7 @@ class IAR(nn.Module):
         x = permute_data(x, self.permutation)
 
         z = torch.zeros_like(x)
-        log_det = torch.zeros(x.shape[0])
+        log_det = torch.zeros(x.shape[0], device=self.device)
 
         for d in range(self.dim_in):
             res = self.made_net(z.clone())
