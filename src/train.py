@@ -16,6 +16,15 @@ def train_forward(
         scheduler=None,
     ):
 
+    if torch.cuda.is_available():
+        dev = "cuda:0"
+    else:
+        dev = "cpu"
+
+    device = torch.device(dev)  
+    train_data.to(device)
+    model.to(device)
+
     batches = DataLoader(dataset=train_data, batch_size=batch_size, 
                             shuffle=True) 
 
@@ -46,6 +55,12 @@ def train_forward(
     print(f"{losses[-1].item():12.5f}")
 
     model.eval()
+    if torch.cuda.is_available():
+        dev = "cpu"
+        device = torch.device(dev)  
+        train_data.to(device)
+        model.to(device)
+
     return losses
 
 
@@ -61,6 +76,15 @@ def train_backward(
         batches=20, 
         print_n=100,
     ):
+
+    if torch.cuda.is_available():
+        dev = "cuda:0"
+    else:
+        dev = "cpu"
+
+    device = torch.device(dev)  
+    train_data.to(device)
+    model.to(device)
 
     num_train_data, _ = train_data.size()
 
@@ -92,4 +116,10 @@ def train_backward(
     print(f"{losses[epoch].item():12.5f}")
 
     model.eval()
+    if torch.cuda.is_available():
+        dev = "cpu"
+        device = torch.device(dev)  
+        train_data.to(device)
+        model.to(device)
+
     return losses
