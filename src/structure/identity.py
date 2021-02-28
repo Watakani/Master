@@ -22,3 +22,7 @@ class ID(nn.Module):
     def backward_flow(self, x):
         z, log_det = self.transform(z, forward=False)
         return z, log_det
+
+    def update_device(self, device):
+        "Does not have use device"
+        pass

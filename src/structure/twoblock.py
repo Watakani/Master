@@ -70,3 +70,7 @@ class TwoBlock(nn.Module):
 
         z = inv_permute_data(z, self.permutation)
         return z, log_det_1 + log_det_2
+
+    def update_device(self, device):
+        "Does not use any device"
+        pass

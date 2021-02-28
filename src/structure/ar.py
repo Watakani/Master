@@ -60,3 +60,6 @@ class AR(nn.Module):
 
         z = inv_permute_data(z, self.permutation) 
         return z, log_det 
+
+    def update_device(self, device):
+        self.device = device

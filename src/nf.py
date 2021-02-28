@@ -82,3 +82,8 @@ class NormalizingFlow(nn.Module):
 
     def get_base_distr(self):
         return self.base_distr
+
+    def update_device(self, device):
+        self.device = device
+        for f in self.flow:
+            f.update_device(device)
