@@ -20,16 +20,20 @@ class ToyDataset(Dataset):
         self.data_distr = data_distr
 
     def get_training_data(self):
-        return self.train_data
+        return self.train_data.to(self.device)
 
     def get_test_data(self):
-        return self.test_data
+        return self.test_data.to(self.device)
 
     def sample(self, n):
         return self.data_distr.sample((n,)).to(self.device)
 
     def evaluate(self, x):
         return self.data_distr.log_prob(x).to(self.device)
+
+    def update_device(self, device):
+        self.device = device
+
 
 
 def create_mvnormal(dim_input):

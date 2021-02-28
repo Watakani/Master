@@ -11,3 +11,9 @@ def permute_data(data, permutation):
 def inv_permute_data(data, permutation):
     return data[:, permutation.inv_permute()]
 
+def update_device(device, model, *args):
+    model.to(device)
+    model.update_device(device)
+    for arg in args:
+        arg.update_device(device)
+
