@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from const_neural_net import ConstNeuralNet
+
 class MaskedLinear(nn.Linear):
     def __init__(self, layer_in, layer_out, bias=True):
         super().__init__(layer_in, layer_out, bias)
@@ -30,23 +32,27 @@ class MADE(nn.Module):
 
         assert self.dim_out % self.dim_in == 0
 
-        self.net = []
-        dim_net = [self.dim_in] + self.dim_hidden + [self.dim_out]
+        if self.dim_in == 1:
+            self.net = ConstNeuralNet(dim_in, dim_hidden, dim_out, act_func)
 
-        for layer_in, layer_out in zip(dim_net[:-1], dim_net[1:]):
-            self.net.extend([
-                        MaskedLinear(layer_in, layer_out),
-                        act_func,
-                    ])
+        else:
+            self.net = []
+            dim_net = [self.dim_in] + self.dim_hidden + [self.dim_out]
 
-        #exclude activation function act_func on output
-        self.net.pop()
 
-        self.net = nn.Sequential(*self.net)
+            for layer_in, layer_out in zip(dim_net[:-1], dim_net[1:]):
+                self.net.extend([
+                            MaskedLinear(layer_in, layer_out),
+                            act_func,
+                        ])
 
-        self.m = {}
-        self.update_masks()
+            #exclude activation function act_func on output
+            self.net.pop()
 
+            self.net = nn.Sequential(*self.net)
+
+            self.m = {}
+            self.update_masks()
 
     def update_masks(self):
         num_hidden = len(self.dim_hidden)

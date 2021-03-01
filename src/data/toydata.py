@@ -15,6 +15,8 @@ class ToyDataset(Dataset):
         if num_train < 1:
             num_train = int(samples * num_train)
 
+        self.dim_input = dim_input
+
         self.train_data = data_distr.sample((num_train,)).to(self.device)
         self.test_data = data_distr.sample((samples - num_train,)).to(self.device)
         self.data_distr = data_distr

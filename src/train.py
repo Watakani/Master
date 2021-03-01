@@ -13,7 +13,8 @@ def train_forward(
         epochs=1000, 
         batch_size=16, 
         print_n=100,
-        scheduler=None,
+        name=None,
+        scheduler=None
     ):
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -24,6 +25,8 @@ def train_forward(
                             shuffle=True) 
 
     num_train_data, _ = train_data.size()
+    if name is None:
+        name = ""
 
     model.train()
     losses = []
@@ -44,10 +47,10 @@ def train_forward(
 
         if epoch % print_n == 0:
             display.clear_output(wait=True)
-            print(f"{losses[epoch].item():12.5f}")
+            print(name, epoch, f"{losses[epoch].item():12.5f}")
 
     display.clear_output(wait=True)
-    print(f"{losses[-1].item():12.5f}")
+    print(name, epoch, f"{losses[epoch].item():12.5f}")
 
     model.eval()
 
