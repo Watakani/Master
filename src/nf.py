@@ -19,6 +19,7 @@ class NormalizingFlow(nn.Module):
         self.kl_backward = not kl_forward 
 
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        self.base_distr_device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     def forward(self, x):
         return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
@@ -54,7 +55,7 @@ class NormalizingFlow(nn.Module):
     def sample(self, n):
         z_0 = self.base_distr.sample((n,)).to(self.device)
         log_prob = torch.zeros(n, device=self.device)
-        log_prob += self.base_distr.log_prob(z_0)
+        log_prob += self.base_distr.log_prob(z_0.to(self.base_distr_device).to(self.device)
 
         z = [z_0]
         z_i = z_0
@@ -77,7 +78,8 @@ class NormalizingFlow(nn.Module):
             log_prob += log_det_i
             z.append(z_i)
 
-        log_prob += self.base_distr.log_prob(z[-1])
+         
+        log_prob += self.base_distr.log_prob(z[-1].to(self.base_distr_device)).to(self.device)
         return z[::-1], log_prob
 
     def get_base_distr(self):
