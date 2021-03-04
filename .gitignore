@@ -1,6 +1,15 @@
 #MacOS
 .DS_Store
 
+#Datafiles
+*.hdf5
+*.pickle
+*.csv
+*.npy
+*.gz
+data_batch*
+
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
