@@ -8,6 +8,7 @@
 *.npy
 *.gz
 data_batch*
+test_batch
 
 
 ## Core latex/pdflatex auxiliary files:
