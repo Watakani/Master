@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..nets.const_neural_net import ConstNeuralNet
+from .const_neural_net import ConstNeuralNet
 
 class MaskedLinear(nn.Linear):
     def __init__(self, layer_in, layer_out, bias=True):
