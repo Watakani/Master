@@ -14,6 +14,7 @@ from .transforms.sigmoid import Sigmoid
 from .transforms.sigmoid_pos import SigmoidPos
 
 from .nf import NormalizingFlow
+from .basedistr import BaseDistribution
 
 import torch
 import torch.nn as nn
@@ -30,12 +31,6 @@ def get_permutation(perm_type, dim_input, num_trans):
 
     return permutations
 
-def create_std_gaussian(dim_input):
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    return torch.distributions.multivariate_normal.MultivariateNormal(
-                        torch.zeros(dim_input).to(device), 
-                        torch.eye(dim_input).to(device))
-
 def create_iaf(
         dim_input, 
         dim_hidden,
@@ -46,7 +41,7 @@ def create_iaf(
         act_func=nn.ReLU()):
 
     if base_distr is None: 
-        base_distr = create_std_gaussian(dim_input)
+        base_distr = BaseDistribution(dim_input)
 
     permutations = get_permutation(perm_type, dim_input, num_trans)
     flow = []
@@ -69,7 +64,7 @@ def create_maf(
         act_func=nn.ReLU()):
 
     if base_distr is None: 
-        base_distr = create_std_gaussian(dim_input)
+        base_distr = BaseDistribution(dim_input)
 
     permutations = get_permutation(perm_type, dim_input, num_trans)
     flow = []
@@ -92,7 +87,7 @@ def create_realnvp(
         act_func=nn.ReLU()):
 
     if base_distr is None: 
-        base_distr = create_std_gaussian(dim_input)
+        base_distr = BaseDistribution(dim_input)
 
     permutations = get_permutation(perm_type, dim_input, num_trans)
     flow = []
@@ -115,7 +110,7 @@ def create_paf(
         act_func=nn.ReLU()):
 
     if base_distr is None: 
-        base_distr = create_std_gaussian(dim_input)
+        base_distr = BaseDistribution(dim_input)
     permutations = get_permutation(perm_type, dim_input, num_trans)
     flow = []
 
@@ -139,7 +134,8 @@ def create_flows(
         act_func=nn.ReLU()):
 
     if base_distr is None: 
-        base_distr = create_std_gaussian(dim_input)
+        base_distr = BaseDistribution(dim_input)
+
     permutations = get_permutation(perm_type, dim_input, num_trans)
     flow = []
 
