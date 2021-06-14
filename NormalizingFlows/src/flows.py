@@ -31,103 +31,12 @@ def get_permutation(perm_type, dim_input, num_trans):
 
     return permutations
 
-def create_iaf(
-        dim_input, 
-        dim_hidden,
-        num_trans, 
-        perm_type='identity',
-        kl_forward=True,
-        base_distr=None,
-        act_func=nn.ReLU()):
-
-    if base_distr is None: 
-        base_distr = BaseDistribution(dim_input)
-
-    permutations = get_permutation(perm_type, dim_input, num_trans)
-    flow = []
-
-    for t in range(num_trans):
-        trans = Affine()
-        struct = IAR(dim_input, dim_hidden, trans, permutations[t],
-                        kl_forward, act_func)
-        flow.append(struct)
-
-    return NormalizingFlow(flow, base_distr, kl_forward)
-
-def create_maf(
-        dim_input,
-        dim_hidden,
-        num_trans,
-        perm_type='identity',
-        kl_forward=True,
-        base_distr=None,
-        act_func=nn.ReLU()):
-
-    if base_distr is None: 
-        base_distr = BaseDistribution(dim_input)
-
-    permutations = get_permutation(perm_type, dim_input, num_trans)
-    flow = []
-
-    for t in range(num_trans):
-        trans = Affine()
-        struct = AR(dim_input, dim_hidden, trans, permutations[t],
-                        kl_forward, act_func)
-        flow.append(struct)
-
-    return NormalizingFlow(flow, base_distr, kl_forward)
-
-def create_realnvp(
-        dim_input,
-        dim_hidden,
-        num_trans,
-        perm_type='identity',
-        kl_forward=True,
-        base_distr=None,
-        act_func=nn.ReLU()):
-
-    if base_distr is None: 
-        base_distr = BaseDistribution(dim_input)
-
-    permutations = get_permutation(perm_type, dim_input, num_trans)
-    flow = []
-
-    for t in range(num_trans):
-        trans = Affine()
-        struct = TwoBlock(dim_input, dim_hidden, trans, permutations[t],
-                            kl_forward, act_func)
-        flow.append(struct)
-
-    return NormalizingFlow(flow, base_distr, kl_forward)
-
-def create_paf(
-        dim_input,
-        dim_hidden,
-        num_trans,
-        perm_type='identity',
-        kl_forward=True,
-        base_distr=None,
-        act_func=nn.ReLU()):
-
-    if base_distr is None: 
-        base_distr = BaseDistribution(dim_input)
-    permutations = get_permutation(perm_type, dim_input, num_trans)
-    flow = []
-
-    for t in range(num_trans):
-        trans = PiecewiseAffine()
-        struct = IAR(dim_input, dim_hidden, trans, permutations[t], 
-                        kl_forward, act_func)
-        flow.append(struct)
-
-    return NormalizingFlow(flow, base_distr, kl_forward)
-
 def create_flows(
         dim_input,
         dim_hidden,
         num_trans,
         perm_type='identity',
-        kl_forward=True,
+        forward=True,
         base_distr=None,
         structure=IAR,
         transformation=PiecewiseAffine,
@@ -148,8 +57,8 @@ def create_flows(
     for t in range(num_trans):
         trans = transformation[t]()
         struct = structure[t](dim_input, dim_hidden, trans, permutations[t], 
-                        kl_forward, act_func)
+                        forward, act_func)
         flow.append(struct)
 
-    return NormalizingFlow(flow, base_distr, kl_forward)
+    return NormalizingFlow(flow, base_distr, forward)
 

@@ -10,10 +10,10 @@ class ID(nn.Module):
         super().__init__()
 
         self.transform = transform
-        self.kl_forward = kl_forward
+        self.forward = forward
 
     def forward(self, x):
-        return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
+        return self.foward_flow(x) if self.forward else self.backward_flow(x)
 
     def forward_flow(self, z):
         x, log_det = self.transform(z, forward=True)

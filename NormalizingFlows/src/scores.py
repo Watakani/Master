@@ -20,6 +20,8 @@ def difference_loglik(data, target, model_1, *add_models):
         for model in models:
             _, log_prob = model.evaluate(data)
             diff_loglik.append(torch.abs(log_prob - target_loglik).detach().numpy())
+            #diff_loglik.append((log_prob - target_loglik).detach().numpy())
  
     means = [np.mean(diff_log_prob) for diff_log_prob in diff_loglik]
-    return diff_loglik, means
+    median = [np.median(diff_log_prob) for diff_log_prob in diff_loglik]
+    return diff_loglik, means, median

@@ -13,7 +13,7 @@ class BaseDistribution:
         self.dim_input = dim_input
         
     def sample(self, n):
-        return self.distr.sample((n, self.dim_input)).to(self.device)
+        return self.distr.sample((n,)).to(self.device)
 
     def log_prob(self, x):
         return self.distr.log_prob(x.to(self.device)).to(self.device)

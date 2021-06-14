@@ -3,7 +3,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ..nets.made import MADE
+from ..conn.made import MADE
+from ..nets.made import MADE as MADE2
 from ..utils import permute_data, inv_permute_data
 
 
@@ -14,16 +15,19 @@ class AR(nn.Module):
             dim_hidden, 
             transform,
             permutation,
-            kl_forward=True, 
-            act_func=nn.ReLU()):
+            forward=True, 
+            act_func=nn.ReLU(),
+            **args):
 
         super().__init__()
 
         self.dim_in = dim_in
         self.dim_out = transform.get_param_count() * dim_in
         self.dim_hidden = dim_hidden
-        self.kl_forward = kl_forward
-        self.made_net = MADE(dim_in, dim_hidden, self.dim_out, act_func)
+        self.forward = forward
+
+        plural = transform.get_param_count()
+        self.made_net = MADE(dim_in, dim_hidden, dim_in, act_func, plural, **args)
 
         self.transform = transform
         self.permutation = permutation
@@ -31,7 +35,7 @@ class AR(nn.Module):
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     def forward(self, x):
-        return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
+        return self.foward_flow(x) if self.forward else self.backward_flow(x)
 
     def forward_flow(self, z):
         z = permute_data(z, self.permutation)

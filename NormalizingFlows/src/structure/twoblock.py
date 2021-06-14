@@ -12,14 +12,14 @@ class TwoBlock(nn.Module):
             dim_hidden,
             transform,
             permutation,
-            kl_forward=True,
+            forward=True,
             act_func=nn.ReLU()):
 
         super().__init__()
 
         self.dim_in = dim_in
         self.dim_hidden = dim_hidden
-        self.kl_forward = kl_forward
+        self.forward = forward
         self.param_count = transform.get_param_count()
 
         self.dim_1 = int(self.dim_in/2)
@@ -33,7 +33,7 @@ class TwoBlock(nn.Module):
         self.permutation = permutation
 
     def forward(self, x):
-        return self.backward_flow(x) if self.kl_forward else self.forward_flow(x)
+        return self.forward_flow(x) if self.forward else self.backward_flow(x)
 
     def forward_flow(self, z):
         z = permute_data(z, self.permutation)

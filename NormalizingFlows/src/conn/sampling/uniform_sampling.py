@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.random import randint
 
 from .sampling import Sampling
 
@@ -14,9 +15,9 @@ class UniformSampling(Sampling):
 
         m_l = []
         for l in range(1,len(dim_net)-1):
-            samples = [sample_set[i] for i in np.random.randint(sample_set_len, size=(dim_net[l]))]
+            samples = [sample_set[i] for i in randint(sample_set_len, size=(dim_net[l]))]
             m_l.append(samples)
 
         m = [m_0] + m_l + [m_L1] 
 
-        return self._create_masks(m, dim_net)
+        return m, self._create_masks(m, dim_net)

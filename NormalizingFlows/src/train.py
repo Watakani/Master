@@ -9,7 +9,7 @@ from .utils import save_best_model, save_checkpoint_model
 
 import IPython.display as display
 
-def train_forward(
+def train_backward(
         model, 
         train_data, 
         optimizer, 
@@ -67,7 +67,7 @@ def train_forward(
 
     return losses
 
-def train_forward_with_tuning(
+def train_backward_with_tuning(
         config,
         model=None, 
         dataset=None, 
@@ -122,7 +122,7 @@ def train_forward_with_tuning(
 
     model.eval()
 
-def train_backward(
+def train_forward(
         model, 
         base_dist, 
         target_dist, 
@@ -180,7 +180,7 @@ def train_backward(
 
     return losses
 
-def train_backward_with_tuning(
+def train_forward_with_tuning(
         config,
         model=None, 
         base_dist=None,

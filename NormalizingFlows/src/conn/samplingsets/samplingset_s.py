@@ -8,7 +8,7 @@ class SamplingSetS(SamplingSetMin):
         self.cut_off = cut_off
 
     def generate(self, c):
-        self.sample_set = super().generate(c)
+        self.sample_set = set(map(frozenset,super().generate(c)))
         new_set = deepcopy(self.sample_set)
 
         for s1 in self.sample_set:
