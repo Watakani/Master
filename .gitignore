@@ -7,6 +7,7 @@
 *.csv
 *.npy
 *.gz
+*.tar
 data_batch*
 test_batch
 
