@@ -36,7 +36,7 @@ def create_flows(
         dim_hidden,
         num_trans,
         perm_type='identity',
-        forward=True,
+        flow_forward=True,
         base_distr=None,
         structure=IAR,
         transformation=PiecewiseAffine,
@@ -57,8 +57,7 @@ def create_flows(
     for t in range(num_trans):
         trans = transformation[t]()
         struct = structure[t](dim_input, dim_hidden, trans, permutations[t], 
-                        forward, act_func)
+                        flow_forward, act_func)
         flow.append(struct)
 
-    return NormalizingFlow(flow, base_distr, forward)
-
+    return NormalizingFlow(flow, base_distr, flow_forward)

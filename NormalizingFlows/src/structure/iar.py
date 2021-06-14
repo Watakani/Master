@@ -14,7 +14,7 @@ class IAR(nn.Module):
             dim_hidden, 
             transform,
             permutation,
-            forward=True, 
+            flow_forward=True, 
             act_func=nn.ReLU(),
             **args):
         
@@ -23,7 +23,7 @@ class IAR(nn.Module):
         self.dim_in = dim_in
         self.dim_out = transform.get_param_count() * dim_in
         self.dim_hidden = dim_hidden
-        self.forward = forward
+        self.flow_forward = flow_forward
 
         plural = transform.get_param_count()
         self.made_net = MADE(dim_in, dim_hidden, dim_in, act_func, plural, **args)
@@ -34,7 +34,7 @@ class IAR(nn.Module):
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     def forward(self, x):
-        return self.forward_flow(x) if self.forward else self.backward_flow(x)
+        return self.forward_flow(x) if self.flow_forward else self.backward_flow(x)
 
     def forward_flow(self, z):
         z = permute_data(z, self.permutation)

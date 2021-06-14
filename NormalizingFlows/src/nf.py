@@ -9,14 +9,13 @@ class NormalizingFlow(nn.Module):
             self, 
             flow,
             base_distr,
-            forward=True,
+            flow_forward=True,
             name='flow_model'):
 
         super().__init__()
 
         self.flow = nn.ModuleList(flow)
-        self.forward = forward 
-        self.backward = not forward 
+        self.flow_forward = flow_forward
 
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -24,7 +23,7 @@ class NormalizingFlow(nn.Module):
         self.name = name
 
     def forward(self, x):
-        return self.forward_flow(x) if self.forward else self.backward_flow(x)
+        return self.forward_flow(x) if self.flow_forward else self.backward_flow(x)
 
     def forward_flow(self, z_0):
         dim_row, _ = x.shape

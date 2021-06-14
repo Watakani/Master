@@ -5,6 +5,7 @@ import torch.nn as nn
 
 from ..conn.made import MADE
 from ..nets.made import MADE as MADE2
+from ..nets.const_neural_net import ConstNeuralNet
 from ..utils import permute_data, inv_permute_data
 
 
@@ -15,7 +16,7 @@ class AR(nn.Module):
             dim_hidden, 
             transform,
             permutation,
-            forward=True, 
+            flow_forward=True, 
             act_func=nn.ReLU(),
             **args):
 
@@ -24,9 +25,12 @@ class AR(nn.Module):
         self.dim_in = dim_in
         self.dim_out = transform.get_param_count() * dim_in
         self.dim_hidden = dim_hidden
-        self.forward = forward
+        self.flow_forward = flow_forward
 
         plural = transform.get_param_count()
+        #if self.dim_in == 1:
+        #    self.made_net = ConstNeuralNet(dim_in, dim_hidden, dim_out, act_func, bias)
+        #else:
         self.made_net = MADE(dim_in, dim_hidden, dim_in, act_func, plural, **args)
 
         self.transform = transform
@@ -35,7 +39,7 @@ class AR(nn.Module):
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     def forward(self, x):
-        return self.foward_flow(x) if self.forward else self.backward_flow(x)
+        return self.foward_flow(x) if self.flow_forward else self.backward_flow(x)
 
     def forward_flow(self, z):
         z = permute_data(z, self.permutation)
