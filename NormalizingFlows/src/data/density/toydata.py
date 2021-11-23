@@ -4,12 +4,13 @@ import torch
 import torch.nn
 
 class ToyDataset(Dataset):
-    def __init__(self, samples=1000, validation_perc=0.1, test_perc=0.1, data_distr=None, dim_input=2):
+    def __init__(self, samples=1000, validation_perc=0.1, test_perc=0.1, data_distr=None, dim_input=2, dtype=torch.float):
         super().__init__()
 
         if data_distr is None:
-            data_distr = create_mvnormal(dim_input)
+            data_distr = create_mvnormal(dim_input, dtype)
 
+        self.dtype = dtype
         self.test_n = int(samples * test_perc)
         self.valid_n = int(samples * validation_perc)
 
@@ -31,10 +32,10 @@ class ToyDataset(Dataset):
         return self.data_distr.log_prob(x).to(self.device)
 
 
-def create_mvnormal(dim_input):
-    sigma = torch.ones((dim_input, dim_input)) * 0.8
-    sigma[range(dim_input), range(dim_input)] = 1.0
-    mean = torch.rand(dim_input) * 8.0
+def create_mvnormal(dim_input, dtype):
+    sigma = torch.ones((dim_input, dim_input), dtype=dtype) * 0.8
+    sigma[range(dim_input), range(dim_input)] = 3.0
+    mean = torch.rand(dim_input, dtype=dtype) * 8.0
 
     return torch.distributions.multivariate_normal.MultivariateNormal(
             mean, sigma)

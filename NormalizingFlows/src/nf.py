@@ -44,13 +44,15 @@ class NormalizingFlow(nn.Module):
         log_prob = torch.zeros(dim_row, device=self.device)
         z = [x] 
         z_i = x
-
+        i = 0
         for f in self.flow[::-1]:
             z_i, log_det_i = f(z_i)
             log_prob += log_det_i
             z.append(z_i)
+            i+=1
 
         log_prob += self.base_distr.log_prob(z[-1])
+
         return z[::-1], log_prob
 
     def sample(self, n):
@@ -79,8 +81,8 @@ class NormalizingFlow(nn.Module):
             log_prob += log_det_i
             z.append(z_i)
 
-         
         log_prob += self.base_distr.log_prob(z[-1])
+         
         return z[::-1], log_prob
 
     def get_base_distr(self):

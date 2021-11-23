@@ -6,6 +6,7 @@ import ray
 from ray import tune
 
 from .utils import save_best_model, save_checkpoint_model
+from .loss import kl_backward, kl_forward 
 
 import IPython.display as display
 
@@ -18,7 +19,8 @@ def train_backward(
         print_n=10,
         save_checkpoint=False,
         save_best=True,
-        burn_in=100
+        burn_in=100,
+        loss_func=kl_backward
     ):
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -34,18 +36,21 @@ def train_backward(
     model.train()
     losses = []
     best_loss = None
-
+    epoch_loss = 0
+    epoch_index = 0
     for epoch in range(epochs):
         batch_loss = 0
+        batch_index = 0
         for index, batch in enumerate(batches):
             model.zero_grad()
             z, log_prob = model(batch)
-            loss = -torch.mean(log_prob)
+            loss = loss_func(log_prob)
 
             loss.backward()
             optimizer.step()
 
-            batch_loss += -torch.sum(log_prob)
+            batch_loss += loss_func(log_prob, mean=False)
+            batch_index += len(batch)
             losses.append(loss.item())
 
             if (index * (epoch+1)) % print_n == 0:
@@ -53,7 +58,7 @@ def train_backward(
                 print(name, "Epoch: {}".format(epoch), "Batch number: {}".format(index), 
                         f"{loss.item():12.5f}")
 
-        epoch_loss = batch_loss/num_train_data
+        epoch_loss = batch_loss/batch_index
         if save_best and epoch > burn_in:
             if best_loss is None or epoch_loss < best_loss:
                 save_best_model(model)
@@ -76,7 +81,8 @@ def train_backward_with_tuning(
         print_n=100,
         optimizer=None,
         scheduler=None,
-        validation=True
+        validation=True,
+        loss_func=kl_backward
     ):
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -103,11 +109,10 @@ def train_backward_with_tuning(
     losses = []
 
     for epoch in range(epochs):
-        batch_loss = 0
         for batch in batches:
             model.zero_grad()
             z, log_prob = model(batch)
-            loss = -torch.mean(log_prob)
+            loss = loss_func(log_prob)
 
             loss.backward()
             optimizer.step()
@@ -115,7 +120,7 @@ def train_backward_with_tuning(
         with torch.no_grad():
             if validation:
                 z, log_prob = model(validation_data)
-                val_loss = -torch.mean(log_prob)
+                val_loss = loss_func(log_prob)
                 tune.report(loss=(losses[epoch].detach().cpu().numpy()))
             else:
                 tune.report(loss=(losses[epoch].detach().cpu().numpy()))
@@ -133,7 +138,8 @@ def train_forward(
         print_n=100,
         save_checkpoint=False,
         save_best=True,
-        burn_in=100
+        burn_in=100,
+        loss_func=kl_forward
     ):
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -146,18 +152,19 @@ def train_forward(
 
     for epoch in range(epochs):
         batch_loss = 0
+        batch_index = 0
         for batch in range(batches):
             model.zero_grad()
 
             sample = base_dist.sample(batch_size)
             x, log_prob = model(batch)
-            target_prob = target_dist.log_prob(x[-1])
-            loss = torch.mean(log_prob - target_prob)
+            target_prob = target_dist.evaluate(x[-1])
+            loss = loss_func(log_prob, target_prob)
 
             loss.backward()
             optimizer.step()
 
-            batch_loss += torch.sum(log_prob-target_prob)
+            batch_loss += loss_func(log_prob, target_prob, mean=False)
             losses.append(loss.item())
 
             if (index * (epoch+1)) % print_n == 0:
@@ -165,7 +172,7 @@ def train_forward(
                 print(name, "Epoch: {}".format(epoch), "Batch number: {}".format(index), 
                         f"{loss.item():12.5f}")
 
-        epoch_loss = batch_loss/(batch_size * batches)
+        epoch_loss = batch_loss/batch_index
         if save_best and epoch > burn_in:
             if best_loss is None or epoch_loss < best_loss:
                 save_best_model(model)
@@ -189,7 +196,8 @@ def train_forward_with_tuning(
         batch_size=16, 
         print_n=100,
         name=None,
-        optimizer=None
+        optimizer=None,
+        loss_func=kl_forward
     ):
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -205,16 +213,13 @@ def train_forward_with_tuning(
     losses = []
 
     for epoch in range(epochs):
-        batch_loss = 0
         for batch in range(batches):
             model.zero_grad()
 
             sample = base_dist.sample(batch_size)
             x, log_prob = model(batch)
             target_prob = target_dist.log_prob(x[-1])
-            loss = torch.mean(log_prob - target_prob)
-
-            batch_loss += torch.sum(log_prob - target_prob)
+            loss = loss_func(log_prob, target_prob)
 
             loss.backward()
             optimizer.step()
@@ -223,7 +228,7 @@ def train_forward_with_tuning(
             sample = base_dist.sample(batch_size)
             x, log_prob = model(validation_data)
             target_prob = target_dist.log_prob(x[-1])
-            val_loss = torch.mean(log_prob - target_prob)
+            val_loss = loss_func(log_prob, target_prob) 
             tune.report(loss=(val_loss.detach().cpu().numpy()))
 
     model.eval()

@@ -18,7 +18,8 @@ class AR(nn.Module):
             permutation,
             flow_forward=True, 
             act_func=nn.ReLU(),
-            **args):
+            *args,
+            **kwargs):
 
         super().__init__()
 
@@ -31,7 +32,7 @@ class AR(nn.Module):
         #if self.dim_in == 1:
         #    self.made_net = ConstNeuralNet(dim_in, dim_hidden, dim_out, act_func, bias)
         #else:
-        self.made_net = MADE(dim_in, dim_hidden, dim_in, act_func, plural, **args)
+        self.made_net = MADE2(dim_in, dim_hidden, self.dim_out, act_func, plural, **args)
 
         self.transform = transform
         self.permutation = permutation

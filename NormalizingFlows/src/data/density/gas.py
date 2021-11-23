@@ -1,4 +1,4 @@
-from .data import Dataset
+from .processed_data import ProcessedData
 
 import pandas as pd
 import numpy as np
@@ -12,7 +12,7 @@ dirname = Path(__file__).parent.absolute()
 DATAPATH_UNPROCESSED = str(dirname) + '/../../data/unprocessed/gas/ethylene_CO.pickle'
 DATAPATH_PREPROCESSED = str(dirname) + '/../../data/preprocessed/gas/gas.hdf5'
 
-class Gas(Dataset):
+class Gas(ProcessedData):
     def __init__(self, validation_perc=0.1, test_perc=0.1, preprocessed=True):
         super().__init__()
 

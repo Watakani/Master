@@ -1,4 +1,4 @@
-from .data import Dataset
+from .processed_data import ProcessedData
 
 import torch
 import pandas as pd
@@ -12,7 +12,7 @@ dirname = Path(__file__).parent.absolute()
 DATAPATH_UNPROCESSED = str(dirname) + '/../../data/unprocessed/hepmass/1000_'
 DATAPATH_PREPROCESSED = str(dirname) + '/../../data/preprocessed/hepmass/hepmass.hdf5'
 
-class Hepmass(Dataset):
+class Hepmass(ProcessedData):
     def __init__(self, validation_perc=0.1, preprocessed=True):
         super().__init__()
         

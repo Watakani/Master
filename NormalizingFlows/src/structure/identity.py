@@ -1,11 +1,16 @@
 import torch
 import torch.nn as nn
 
+from ..transforms.constant import Constant
+
 class ID(nn.Module):
     def __init__(
             self,
+            dim_in, 
             transform,
-            flow_forward=True):
+            flow_forward=True,
+            *args,
+            **kwargs):
 
         super().__init__()
 
@@ -20,7 +25,7 @@ class ID(nn.Module):
         return x, log_det
 
     def backward_flow(self, x):
-        z, log_det = self.transform(z, forward=False)
+        z, log_det = self.transform(x, forward=False)
         return z, log_det
 
     def update_device(self, device):
