@@ -6,8 +6,8 @@ import torch.nn as nn
 from .transformation import Transformation
 
 class Affine(Transformation):
-    def __init__(self, flow_forward=True, a_param=torch.exp):
-        super().__init__(2, flow_forward)
+    def __init__(self, forward_flow=True, a_param=torch.exp):
+        super().__init__(2, forward_flow)
         self.a_param = a_param
 
     def training_direction(self, z, param):

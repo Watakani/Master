@@ -6,7 +6,7 @@ import torch.nn
 class ToyDataset(Dataset):
     def __init__(self, samples=1000, validation_perc=0.1, test_perc=0.1, data_distr=None, dim_input=2, dtype=torch.float):
         super().__init__()
-
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         if data_distr is None:
             data_distr = create_mvnormal(dim_input, dtype)
 
@@ -29,8 +29,10 @@ class ToyDataset(Dataset):
         return self.data_distr.sample((n,)).to(self.device)
 
     def evaluate(self, x):
-        return self.data_distr.log_prob(x).to(self.device)
-
+        return self.data_distr.log_prob(x.to(self.device)).to(self.device)
+    
+    def update_device(self, device):
+        self.device = device
 
 def create_mvnormal(dim_input, dtype):
     sigma = torch.ones((dim_input, dim_input), dtype=dtype) * 0.8

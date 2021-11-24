@@ -23,6 +23,7 @@ from .basedistr import BaseDistribution
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 def get_permutation(perm_type, dim_input, num_trans):
     if perm_type == 'random':
@@ -50,7 +51,7 @@ def create_flows_with_IAR(
     if base_distr is None: 
         base_distr = BaseDistribution(dim_input)
 
-    permutations = get_permutation(perm_type, dim_input, num_trans)
+    permutations = get_permutation(perm_type, dim_input, len(transformations))
     flow = []
 
     for t, trans in enumerate(transformations):
@@ -75,7 +76,7 @@ def create_flows_with_AR(
     if base_distr is None: 
         base_distr = BaseDistribution(dim_input)
 
-    permutations = get_permutation(perm_type, dim_input, num_trans)
+    permutations = get_permutation(perm_type, dim_input, len(transformations))
     flow = []
 
     for t, trans in enumerate(transformations):
@@ -100,7 +101,7 @@ def create_flows_with_twoblock(
     if base_distr is None: 
         base_distr = BaseDistribution(dim_input)
 
-    permutations = get_permutation(perm_type, dim_input, num_trans)
+    permutations = get_permutation(perm_type, dim_input, len(transformations))
     flow = []
 
     for t, trans in enumerate(transformations):
@@ -115,7 +116,6 @@ def create_flows_with_full(
         dim_input,
         dim_hidden,
         transformations,
-        perm_type='identity',
         flow_forward=True,
         base_distr=None,
         act_func=nn.ReLU(),
@@ -125,7 +125,6 @@ def create_flows_with_full(
     if base_distr is None: 
         base_distr = BaseDistribution(dim_input)
 
-    permutations = get_permutation(perm_type, dim_input, num_trans)
     flow = []
 
     for t, trans in enumerate(transformations):
@@ -148,11 +147,10 @@ def create_flows_with_identity(
     if base_distr is None: 
         base_distr = BaseDistribution(dim_input)
 
-    permutations = get_permutation(perm_type, dim_input, num_trans)
     flow = []
 
     for t, trans in enumerate(transformations):
-        struct = Full(dim_input, trans, flow_forward, 
+        struct = ID(dim_input, trans, flow_forward, 
                 act_func, *args, **kwargs)
 
         flow.append(struct)
@@ -163,7 +161,7 @@ def create_flows_with_identity(
 def create_affine_trans(
         num_trans,
         flow_forward=True,
-        a_param=torch.exp):
+        a_param=F.softplus):
 
     return [Affine(flow_forward, a_param) for t in range(num_trans)] 
 
@@ -171,9 +169,9 @@ def create_constant_trans(
         num_trans,
         dim_in,
         flow_forward=True,
-        a_param=torch.exp):
+        a_param=F.softplus):
 
-    return [Constant(forward_flow, a_param) for t in range(num_trans)]
+    return [Constant(dim_in, flow_forward, a_param) for t in range(num_trans)]
 
 def create_continuous_piecewise_trans(
         num_trans,
@@ -188,15 +186,15 @@ def create_continuous_piecewise_trans(
 def create_piecewise_trans(
         num_trans,
         forward_flow=True,
-        a_param=torch.exp):
+        a_param=F.softplus):
 
-    return [PiecewiseAffine(forward_flow, a_param) for t in range(t)]
+    return [PiecewiseAffine(forward_flow, a_param) for t in range(num_trans)]
 
 def create_alt_piecewise_affine_trans(
         num_trans,
         forward_flow=True,
-        a_param=torch.exp,
-        c_param=torch.exp):
+        a_param=F.softplus,
+        c_param=F.softplus):
     
     transforms = []
     for t in range(num_trans):
@@ -204,15 +202,15 @@ def create_alt_piecewise_affine_trans(
             transforms.append(PiecewiseAffine(forward_flow, a_param))
 
         else:
-            transforms.append(Affine(forward, c_param))
+            transforms.append(Affine(forward_flow, c_param))
 
     return transforms
 
 def create_affinepiecewise_trans(
         num_trans,
         forward_flow=True,
-        a_param=torch.exp,
-        c_param=torch.exp):
+        a_param=F.softplus,
+        c_param=F.softplus):
 
     return [PiecewiseAffineAffine(forward_flow, a_param, c_param) 
                 for t in range(num_trans)]
@@ -220,8 +218,8 @@ def create_affinepiecewise_trans(
 def create_affinecontinuous_trans(
         num_trans,
         forward_flow=True,
-        a_param=torch.exp,
-        c_param=torch.exp,
+        a_param=F.softplus,
+        c_param=F.softplus,
         beta_as_hyper=True,
         beta=5
         ):
@@ -239,7 +237,7 @@ def create_alt_linear_affine_trans(
         num_trans,
         dim_in,
         forward_flow=True,
-        a_param=torch.exp):
+        a_param=F.softplus):
 
     transforms = []
     for t in range(num_trans):
@@ -253,7 +251,7 @@ def create_alt_linear_piecewise_trans(
         num_trans,
         dim_in,
         forward_flow=True,
-        a_param=torch.exp):
+        a_param=F.softplus):
 
     transforms = []
     for t in range(num_trans):
@@ -285,8 +283,8 @@ def create_alt_linear_affinepiecewise_trans(
         num_trans,
         dim_in,
         forward_flow=True,
-        a_param=torch.exp,
-        c_param=torch.exp):
+        a_param=F.softplus,
+        c_param=F.softplus):
 
     transforms = []
     for t in range(num_trans):
@@ -301,8 +299,8 @@ def create_alt_linear_affinecontinuous_trans(
         num_trans,
         dim_in,
         forward_flow=True,
-        a_param=torch.exp,
-        c_param=torch.exp,
+        a_param=F.softplus,
+        c_param=F.softplus,
         beta_as_hyper=True,
         beta=5):
 

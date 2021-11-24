@@ -16,8 +16,8 @@ class Transformation(nn.Module):
         return self.inverse_direction(z, *args, **kwargs)
 
     def backward_trans(self, x, *args, **kwargs):
-        if self.flow_forward:
-            return self.inverse_direction(x, *args, **kwargs)
+        if not self.flow_forward:
+            return self.training_direction(x, *args, **kwargs)
         return self.inverse_direction(x, *args, **kwargs)
     
     def training_direction(self, z, *args, **kwargs):

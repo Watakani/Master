@@ -10,13 +10,14 @@ class BaseDistribution:
                             torch.eye(dim_input).to(self.device))
 
         self.distr = distr
+        self.device_ = self.device
         self.dim_input = dim_input
         
     def sample(self, n):
         return self.distr.sample((n,)).to(self.device)
 
     def log_prob(self, x):
-        return self.distr.log_prob(x.to(self.device)).to(self.device)
+        return self.distr.log_prob(x.to(self.device_)).to(self.device)
 
     def update_device(self, device):
         self.device = device

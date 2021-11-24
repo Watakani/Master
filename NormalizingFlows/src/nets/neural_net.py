@@ -19,7 +19,8 @@ class NeuralNet(nn.Module):
 
         self.act_func = act_func
 
-        assert self.dim_out % self.dim_in == 0
+        # Not required...
+        # assert self.dim_out % self.dim_in == 0
 
         self.net = []
         dim_net = [self.dim_in] + self.dim_hidden + [self.dim_out]

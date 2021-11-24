@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from torch import functional as F
+from torch.nn import functional as F
 
 from .transformation import Transformation
 
@@ -47,7 +47,7 @@ class LinearTrans(Transformation):
         assert type in ['lie', 'cayley'], f'Type {type} not supported.'
         self.type = type
 
-        self.bias = bias
+        self.bias = None
         if bias:
             self.bias = nn.Parameter(torch.rand(1, dim))
             
@@ -73,16 +73,16 @@ class LinearTrans(Transformation):
         haar_orthogonal_(self._base)
 
     def extra_repr(self): 
-        return 'features={}, type={}'.format(self.features, self.type)
+        return 'features={}, type={}'.format(self.dim, self.type)
 
     def training_direction(self, z):
         log_det = torch.sum(torch.zeros_like(z), dim=1)
-        if self.bias:
+        if self.bias is not None:
             return F.linear(z, self.weight)+self.bias, log_det
         return F.linear(z, self.weight), log_det
 
     def inverse_direction(self, x):
         log_det = torch.sum(torch.zeros_like(x), dim=1)
-        if self.bias:
+        if self.bias is not None:
             return F.linear(x-self.bias, self.weight.T), log_det
         return F.linear(x, self.weight.T), log_det
