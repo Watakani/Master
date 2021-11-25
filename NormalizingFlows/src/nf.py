@@ -26,7 +26,7 @@ class NormalizingFlow(nn.Module):
         return self.forward_flow(x) if self.flow_forward else self.backward_flow(x)
 
     def forward_flow(self, z_0):
-        dim_row, _ = x.shape
+        dim_row, _ = z_0.shape
         log_prob = torch.zeros(dim_row, device=self.device)
         log_prob += self.base_distr.log_prob(z_0)
         z = [z_0]

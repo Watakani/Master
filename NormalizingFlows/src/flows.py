@@ -112,6 +112,98 @@ def create_flows_with_twoblock(
 
     return NormalizingFlow(flow, base_distr, flow_forward)
 
+def create_flows_with_alt_identity_twoblock(
+        dim_input,
+        dim_hidden,
+        transformations,
+        perm_type='identity',
+        flow_forward=True,
+        base_distr=None,
+        act_func=nn.ReLU(),
+        *args,
+        **kwargs):
+
+    if base_distr is None: 
+        base_distr = BaseDistribution(dim_input)
+
+    permutations = get_permutation(perm_type, dim_input, len(transformations))
+    flow = []
+    perm_i = 0
+    for t, trans in enumerate(transformations):
+        if t % 2 == 0:
+            struct = ID(dim_input, trans, flow_forward, 
+                act_func, *args, **kwargs)
+        else:
+            struct = TwoBlock(dim_input, dim_hidden, trans, permutations[perm_i], 
+                        flow_forward, act_func, *args, **kwargs)
+            perm_i += 1
+
+        flow.append(struct)
+
+    return NormalizingFlow(flow, base_distr, flow_forward)
+
+def create_flows_with_alt_identity_AR(
+        dim_input,
+        dim_hidden,
+        transformations,
+        perm_type='identity',
+        flow_forward=True,
+        base_distr=None,
+        act_func=nn.ReLU(),
+        *args,
+        **kwargs):
+
+    if base_distr is None: 
+        base_distr = BaseDistribution(dim_input)
+
+    permutations = get_permutation(perm_type, dim_input, len(transformations))
+    flow = []
+    
+    perm_i = 0
+    for t, trans in enumerate(transformations):
+        if t % 2 == 0:
+            struct = ID(dim_input, trans, flow_forward, 
+                act_func, *args, **kwargs)
+        else:
+            struct = AR(dim_input, dim_hidden, trans, permutations[perm_i], 
+                    flow_forward, act_func, *args, **kwargs)
+            perm_i += 1
+
+        flow.append(struct)
+
+    return NormalizingFlow(flow, base_distr, flow_forward)
+
+def create_flows_with_alt_identity_IAR(
+        dim_input,
+        dim_hidden,
+        transformations,
+        perm_type='identity',
+        flow_forward=True,
+        base_distr=None,
+        act_func=nn.ReLU(),
+        *args,
+        **kwargs):
+
+    if base_distr is None: 
+        base_distr = BaseDistribution(dim_input)
+
+    permutations = get_permutation(perm_type, dim_input, len(transformations))
+    flow = []
+    
+    perm_i = 0
+    for t, trans in enumerate(transformations):
+        if t % 2 == 0:
+            struct = ID(dim_input, trans, flow_forward, 
+                act_func, *args, **kwargs)            
+        else:
+            struct = IAR(dim_input, dim_hidden, trans, permutations[perm_i], 
+                    flow_forward, act_func, *args, **kwargs)
+            perm_i += 1
+
+        flow.append(struct)
+
+    return NormalizingFlow(flow, base_distr, flow_forward)
+
 def create_flows_with_full(
         dim_input,
         dim_hidden,
@@ -218,7 +310,7 @@ def create_affinepiecewise_trans(
 def create_affinecontinuous_trans(
         num_trans,
         forward_flow=True,
-        a_param=F.softplus,
+        a_param=torch.abs,
         c_param=F.softplus,
         beta_as_hyper=True,
         beta=5
@@ -299,7 +391,7 @@ def create_alt_linear_affinecontinuous_trans(
         num_trans,
         dim_in,
         forward_flow=True,
-        a_param=F.softplus,
+        a_param=torch.abs,
         c_param=F.softplus,
         beta_as_hyper=True,
         beta=5):

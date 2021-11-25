@@ -153,18 +153,18 @@ def train_forward(
     for epoch in range(epochs):
         batch_loss = 0
         batch_index = 0
-        for batch in range(batches):
+        for index, batch in enumerate(range(batches)):
             model.zero_grad()
 
             sample = base_dist.sample(batch_size)
-            x, log_prob = model(batch)
+            x, log_prob = model(sample)
             target_prob = target_dist.evaluate(x[-1])
             loss = loss_func(log_prob, target_prob)
 
             loss.backward()
             optimizer.step()
 
-            batch_loss += loss_func(log_prob, target_prob, mean=False)
+            batch_loss += loss_func(log_prob, target_prob, mean=True)
             losses.append(loss.item())
 
             if (index * (epoch+1)) % print_n == 0:

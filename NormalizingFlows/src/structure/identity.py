@@ -18,7 +18,7 @@ class ID(nn.Module):
         self.flow_forward = flow_forward
 
     def forward(self, x):
-        return self.foward_flow(x) if self.flow_forward else self.backward_flow(x)
+        return self.forward_flow(x) if self.flow_forward else self.backward_flow(x)
 
     def forward_flow(self, z):
         x, log_det = self.transform(z, forward=True)
