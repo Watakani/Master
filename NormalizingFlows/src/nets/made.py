@@ -1,3 +1,5 @@
+#Rewritten from https://github.com/karpathy/pytorch-made
+
 import numpy as np
 import numpy.random as rnd
  
