@@ -2,11 +2,11 @@ import numpy as np
 import rpy2.robjects
 from rpy2.robjects import r
 import rpy2.robjects.packages as rpackages
-from rpy2.robjects.vectores import StrVector
+from rpy2.robjects.vectors import StrVector
 
-if rpackages.isinstalled('loo'):
+if not rpackages.isinstalled('loo'):
     utils = rpackages.importr('utils')
-    utils.chooseCRANmirror(ind=cranInd)
+    utils.chooseCRANmirror(ind=63)
     utils.install_packages(StrVector('loo'))
 loo = rpackages.importr('loo')
 

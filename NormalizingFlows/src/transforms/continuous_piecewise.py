@@ -30,7 +30,7 @@ class ContinuousPiecewise(Transformation):
 
         self.beta_as_hyper = beta_as_hyper
         self.a_param = a_param
-        self.zero = None
+
 
         if beta_as_hyper:
             super().__init__(2, forward_flow)
@@ -54,9 +54,6 @@ class ContinuousPiecewise(Transformation):
         c_1 = self.beta * torch.log(a_p) 
         c_2 = self.beta * (a_p - 1)
         
-        if self.zero is None:
-            self.zero = torch.zeros_like(z)
-
         
         i_1 = a > 0
         i_2 = a <= 0
@@ -65,14 +62,19 @@ class ContinuousPiecewise(Transformation):
         i_5 = z > c_2
         i_6 = (z >= 0) & (z <= c_2)
 
-        x_1 , log_det_1 = (g_p(z, self.beta))        
+        x_1, log_det_1 = (g_p(z, self.beta))        
         x_2, log_det_2 = g_n(z, self.beta)        
         x_3, log_det_3 = aff_p(z, a_p, c_1, c_2)        
         x_4, log_det_4 = aff_n(z, a_p, c_1, c_2)
+        
+        m_1 = (i_1 & i_4)
+        m_2 = (i_2 & i_6)
+        m_3 = (i_1 & i_3)
+        m_4 = (i_2 & i_5)
 
-    
-        x = x_1 * (i_1 & i_4) + x_2 * (i_2 & i_6) + x_3 * (i_1 & i_3) + x_4 * (i_2 & i_5) + torch.min(z, self.zero)
-        log_det = log_det_1 * (i_1 & i_4) + log_det_2 * (i_2 & i_6) + log_det_3 * (i_1 & i_3) + log_det_4 * (i_2 & i_5)
+        x = x_1 * m_1 + x_2 * m_2  + x_3 * m_3 + x_4 * m_4 + torch.min(z, torch.zeros_like(z))
+        log_det = log_det_1 * m_1 + log_det_2 * m_2 + log_det_3 * m_3 + log_det_4 * m_4
+        
         x += b
 
         return x, torch.sum(log_det, dim=1)
@@ -89,17 +91,15 @@ class ContinuousPiecewise(Transformation):
 
         c_1 = self.beta * torch.log(a_p) 
         c_2 = self.beta * (a_p - 1)
-        
-        if self.zero is None:
-            self.zero = torch.zeros_like(z)
+
 
         
         i_1 = a <= 0
         i_2 = a >  0
-        i_3 = z > c_1
-        i_4 = (z >= 0) & (z <= c_1)
-        i_5 = z > c_2
-        i_6 = (z >= 0) & (z <= c_2)
+        i_3 = x > c_1
+        i_4 = (x >= 0) & (x <= c_1)
+        i_5 = x > c_2
+        i_6 = (x >= 0) & (x <= c_2)
 
         z_1, log_det_1 = (g_p(x, self.beta))        
         z_2, log_det_2 = g_n(x, self.beta)        
@@ -107,9 +107,14 @@ class ContinuousPiecewise(Transformation):
         z_4, log_det_4 = aff_n(x, a_p, c_1, c_2)
 
     
-        z = z_1 * (i_1 & i_4) + z_2 * (i_2 & i_6) + z_3 * (i_1 & i_3) + z_4 * (i_2 & i_5) + torch.min(x, self.zero)
-        log_det = log_det_1 * (i_1 & i_4) + log_det_2 * (i_2 & i_6) + log_det_3 * (i_1 & i_3) + log_det_4 * (i_2 & i_5)
+        m_1 = (i_1 & i_4)
+        m_2 = (i_2 & i_6)
+        m_3 = (i_1 & i_3)
+        m_4 = (i_2 & i_5)
+    
+        z = z_1 * m_1 + z_2 * m_2  + z_3 * m_3 + z_4 * m_4 + torch.min(x, torch.zeros_like(x))
+        log_det = log_det_1 * m_1 + log_det_2 * m_2 + log_det_3 * m_3 + log_det_4 * m_4
         
         z += b
 
-        return x, torch.sum(log_det, dim=1)
+        return z, torch.sum(log_det, dim=1)

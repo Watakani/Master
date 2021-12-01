@@ -6,11 +6,11 @@ import numpy as np
 
 from os import path
 from pathlib import Path
-from ..utils import write_to_file
+from ...utils import write_to_file
 
 dirname = Path(__file__).parent.absolute()
-DATAPATH_UNPROCESSED = str(dirname) + '/../../data/unprocessed/hepmass/1000_'
-DATAPATH_PREPROCESSED = str(dirname) + '/../../data/preprocessed/hepmass/hepmass.hdf5'
+DATAPATH_UNPROCESSED = str(dirname) + '/../../../data/unprocessed/hepmass/1000_'
+DATAPATH_PREPROCESSED = str(dirname) + '/../../../data/preprocessed/hepmass/hepmass.hdf5'
 
 class Hepmass(ProcessedData):
     def __init__(self, validation_perc=0.1, preprocessed=True):

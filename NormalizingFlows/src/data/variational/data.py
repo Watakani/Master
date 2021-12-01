@@ -7,7 +7,7 @@ from ...utils import write_to_file
 class Dataset:
     def __init__(self):
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.device_ = torch.device('cpu')
+        self.device_ = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.train_data = None
         self.validation_data = None
         self.test_data = None
@@ -38,7 +38,11 @@ class Dataset:
     
     def evaluate(self, param, mode='train'):
         data = self._get_data(mode)
-        return self.log_lik(param.to(self.device_), [dat.to(self.device_) for dat in data]) + self.log_prior(param.to(self.device_))
+        log_l_pri =  self.log_prior(param.to(self.device_))
+        log_l_lik = self.log_lik(param.to(self.device_), [dat.to(self.device_) for dat in data])
+        log_l = log_l_pri + log_l_lik
+        
+        return log_l
 
     def update_device(self, device):
         self.device = device

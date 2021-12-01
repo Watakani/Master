@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 
 from ..conn.made import MADE
+from ..nets.made import MADE as MADE2
 from ..utils import permute_data, inv_permute_data
 
 
@@ -25,8 +26,8 @@ class IAR(nn.Module):
         self.dim_hidden = dim_hidden
         self.flow_forward = flow_forward
 
-        plural = transform.get_param_count()
-        self.made_net = MADE(dim_in, dim_hidden, dim_in, act_func, plural, **args)
+        #plural = transform.get_param_count()
+        self.made_net = MADE2(dim_in, dim_hidden, self.dim_out, act_func, True)
 
         self.transform = transform
         self.permutation = permutation

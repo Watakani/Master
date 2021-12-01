@@ -22,15 +22,16 @@ class Full(nn.Module):
         self.dim_hidden = dim_hidden
         self.flow_forward = flow_forward
 
-        self.net = NoisyNeuralNet(dim_in, dim_hidden, dim_in, act_func, **args)
+        self.network = NoisyNeuralNet(dim_in, dim_hidden, self.dim_out, act_func, **args)
         
         self.transform = transform
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     def forward(self, x):
-        return self.forward_flow(x) if self.forward_flow else self.backward_flow(x)
+        return self.forward_flow(x) if self.flow_forward else self.backward_flow(x)
 
     def forward_flow(self, z):
+        res = self.network(z)
         param = res.split(self.dim_in, dim=1)
 
         x, log_det = self.transform(z, param, forward=True)
@@ -38,9 +39,10 @@ class Full(nn.Module):
         return x, log_det
 
     def backward_flow(self, x):
+        res = self.network(x)
         param = res.split(self.dim_in, dim=1)
 
-        z, log_det = self.transform(x, param, backward=True)
+        z, log_det = self.transform(x, param, forward=False)
 
         return z, log_det
 

@@ -32,7 +32,7 @@ class AR(nn.Module):
         #if self.dim_in == 1:
         #    self.made_net = ConstNeuralNet(dim_in, dim_hidden, dim_out, act_func, bias)
         #else:
-        self.made_net = MADE2(dim_in, dim_hidden, self.dim_out, act_func, plural, **kwargs)
+        self.made_net = MADE2(dim_in, dim_hidden, self.dim_out, act_func, natural_ordering=True, **kwargs)
 
         self.transform = transform
         self.permutation = permutation
@@ -40,7 +40,7 @@ class AR(nn.Module):
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     def forward(self, x):
-        return self.foward_flow(x) if self.flow_forward else self.backward_flow(x)
+        return self.forward_flow(x) if self.flow_forward else self.backward_flow(x)
 
     def forward_flow(self, z):
         z = permute_data(z, self.permutation)

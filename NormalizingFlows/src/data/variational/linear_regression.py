@@ -17,8 +17,8 @@ class LinearRegression(Dataset):
         self.dim = dim
         self.dim_input = dim + 1
 
-        self.multigaussian = MultivariateNormal(torch.zeros(dim), torch.eye(dim))
-        self.gammadistr = Gamma(.5,.5)
+        self.multigaussian = MultivariateNormal(torch.zeros(dim).to(self.device_), torch.eye(dim).to(self.device_))
+        self.gammadistr = Gamma(torch.tensor(.5).to(self.device_), torch.tensor(.5).to(self.device_))
 
         X_train = self.multigaussian.rsample((n_train,))
         X_valid = self.multigaussian.rsample((n_valid,))
@@ -51,11 +51,10 @@ class LinearRegression(Dataset):
         
         log_l = ((y - mean)**2)
         log_l = torch.sum(log_l , axis=1)[:, None]
-        log_l = - sigma - (1/X.size()[0]) * (1/(2*sigma**2)) * log_l
+        log_l = - sigma - 1/(X.size()[0]) * (1/(2*sigma**2)) * log_l
 
-        
    
-        return log_l.to(self.device)
+        return (log_l[:,0].to(self.device))
 
 
     

@@ -49,7 +49,7 @@ def train_backward(
             loss.backward()
             optimizer.step()
 
-            batch_loss += loss_func(log_prob, mean=False)
+            batch_loss += loss_func(log_prob, mean=False).item()
             batch_index += len(batch)
             losses.append(loss.item())
 
@@ -64,7 +64,7 @@ def train_backward(
                 save_best_model(model)
 
     display.clear_output(wait=True)
-    print("Finished training. Loss for last epoch " + name + ':', f"{epoch_loss.item():12.5f}")
+    print("Finished training. Loss for last epoch " + name + ':', f"{epoch_loss:12.5f}")
 
     model.eval()
     if save_checkpoint:

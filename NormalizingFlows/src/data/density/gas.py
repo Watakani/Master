@@ -6,11 +6,11 @@ import torch
 
 from os import path
 from pathlib import Path
-from ..utils import write_to_file
+from ...utils import write_to_file
 
 dirname = Path(__file__).parent.absolute()
-DATAPATH_UNPROCESSED = str(dirname) + '/../../data/unprocessed/gas/ethylene_CO.pickle'
-DATAPATH_PREPROCESSED = str(dirname) + '/../../data/preprocessed/gas/gas.hdf5'
+DATAPATH_UNPROCESSED = str(dirname) + '/../../../data/unprocessed/gas/ethylene_CO.pickle'
+DATAPATH_PREPROCESSED = str(dirname) + '/../../../data/preprocessed/gas/gas.hdf5'
 
 class Gas(ProcessedData):
     def __init__(self, validation_perc=0.1, test_perc=0.1, preprocessed=True):
